@@ -877,7 +877,7 @@ CMD:gmembers(playerid)
 	format(Query,sizeof(Query),"SELECT UserName FROM Members WHERE GangName = '%s'",GInfo[playerid][gangname]);
 	result = db_query(Database,Query);
 	for (new a; a < db_num_rows(result); a++, db_next_row(result))
-	{
+	{c
 		db_get_field_assoc(result, "UserName", name, sizeof(name));
 		format(string,sizeof(string),"%s\n"WHITE"%d.)"RED" %s ",string,a + 1,name);
 	}
@@ -1030,7 +1030,7 @@ CMD:createzone(playerid,params[])
 	if(creatingzone[playerid])
 	{
 		creatingzone[playerid]= false;
-		TogglePlayerControllable(playerid,false);
+		TogglePlayerControllable(playerid,true);
 
 		return 1;
 	}
@@ -1044,7 +1044,7 @@ CMD:createzone(playerid,params[])
 		creatingzone[playerid] = true;
 		tempzone[playerid] = -1;
 		TogglePlayerControllable(playerid,false);
-
+		SendClientMessage(playerid,-1,""RED"Use "YELLOW"Left,Right Forward "RED"and "YELLOW"Backward "RED"keys to change size of zone.Use "YELLOW"walk "RED"key to stop the process");
 		return 1;
 	}
 	return 1;
