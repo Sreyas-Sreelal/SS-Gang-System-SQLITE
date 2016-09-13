@@ -717,13 +717,13 @@ public OnPlayerLeaveArea(playerid, areaid)
 		{
 			if(Capturing[playerid])
 			{
-			new msg[124];
+			new msg[200];
 			Capturing[playerid] = false;
-  			format(msg,sizeof msg,""RED"%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone the zone.It will be locked for %d minute(s)",GInfo[playerid][gangname],ZInfo[i][Name],((ZONE_LOCK_TIME)/60));
+  			format(msg,sizeof msg,""RED"%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone.It will be locked for %d minute(s)",GInfo[playerid][gangname],ZInfo[i][Name],((ZONE_LOCK_TIME)/60));
 			KillTimer(ZInfo[i][timercap_main]);
 			PlayerTextDrawHide(playerid,TimerTD[playerid][0]);
 			SendClientMessageToAll(-1,msg);
-            ZInfo[i][timer] = ZONE_LOCK_TIME;
+                        ZInfo[i][timer] = ZONE_LOCK_TIME;
 			ZInfo[i][locked] = true;
 			ZInfo[i][timer_main] = SetTimerEx("UnlockZone",1000,true,"i",i);
 			}
