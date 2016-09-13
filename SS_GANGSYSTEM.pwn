@@ -1055,7 +1055,7 @@ CMD:createzone(playerid,params[])
 		creatingzone[playerid] = true;
 		tempzone[playerid] = -1;
 		TogglePlayerControllable(playerid,false);
-
+                SendClientMessage(playerid,-1,""RED"Use "YELLOW"Left,Right Forward "RED"and "YELLOW"Backward "RED"keys to change size of zone.Use "YELLOW"walk "RED"key to stop the process");
 		return 1;
 	}
 	return 1;
