@@ -89,6 +89,7 @@
 #define ZONE_COLOR   		0xF3F0E596
 #define ZONE_LOCK_TIME  	120                //NOTE:The time should be given in seconds
 #define ZONE_CAPTURE_TIME   30                //Same as above note
+#define MAX_SCORE           100              //Maximum score to create a gang
 //----------------------------------------------------------------------------------------
 
 
@@ -747,8 +748,16 @@ CMD:creategang(playerid,params[])
 {
 	new gname[32],query[256],DBResult:result,string[128];
 	GetPlayerName( playerid, GInfo[playerid][username], MAX_PLAYER_NAME );
+    if(GInfo[playerid][gangmember] == 1)return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already in a Gang /lg to leave it");
+	if(GetPlayerScore(playerid) < MAX_SCORE )
+	{
+	new str_[89];
+	format(str_,sizeof str_,""RED"ERROR:"GREY"You need atleast "GREEN"%d "RED"to create a gang!",MAX_SCORE);
+	return SendClientMessage(playerid,-1,str_);
+	}
+	
 	if(sscanf(params,"s[56]",gname))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/creategang [GangName]");
-	if(GInfo[playerid][gangmember] == 1)return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already in a Gang /lg to leave it");
+	
 	format(query,sizeof(query),"SELECT GangName FROM Gangs WHERE GangName = '%q'",gname);
 	result = db_query( Database, query );
 	if( db_num_rows( result ) )
@@ -877,7 +886,7 @@ CMD:gmembers(playerid)
 	format(Query,sizeof(Query),"SELECT UserName FROM Members WHERE GangName = '%s'",GInfo[playerid][gangname]);
 	result = db_query(Database,Query);
 	for (new a; a < db_num_rows(result); a++, db_next_row(result))
-	{c
+	{
 		db_get_field_assoc(result, "UserName", name, sizeof(name));
 		format(string,sizeof(string),"%s\n"WHITE"%d.)"RED" %s ",string,a + 1,name);
 	}
@@ -1030,7 +1039,7 @@ CMD:createzone(playerid,params[])
 	if(creatingzone[playerid])
 	{
 		creatingzone[playerid]= false;
-		TogglePlayerControllable(playerid,true);
+		TogglePlayerControllable(playerid,false);
 
 		return 1;
 	}
@@ -1044,7 +1053,7 @@ CMD:createzone(playerid,params[])
 		creatingzone[playerid] = true;
 		tempzone[playerid] = -1;
 		TogglePlayerControllable(playerid,false);
-		SendClientMessage(playerid,-1,""RED"Use "YELLOW"Left,Right Forward "RED"and "YELLOW"Backward "RED"keys to change size of zone.Use "YELLOW"walk "RED"key to stop the process");
+
 		return 1;
 	}
 	return 1;
@@ -1082,7 +1091,6 @@ CMD:capture(playerid)
 	ZInfo[i][U_Attack] = true;
 	new string[150];
 	format(string,sizeof string,""YELLOW"%s"ORANGE" gang has started to capture "GREEN"%s "ORANGE"zone",GInfo[playerid][gangname],ZInfo[i][Name]);
-	SendClientMessageToAll(-1,string);
 	ZInfo[i][timercap] = ZONE_CAPTURE_TIME;
 	ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ui", playerid, i);
 	return 1;
