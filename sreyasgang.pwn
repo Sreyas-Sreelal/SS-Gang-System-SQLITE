@@ -752,7 +752,7 @@ CMD:creategang(playerid,params[])
 	if(GetPlayerScore(playerid) < MAX_SCORE )
 	{
 	new str_[89];
-	format(str_,sizeof str_,""RED"ERROR:"GREY"You need atleast "GREEN"%d "RED"to create a gang!",MAX_SCORE);
+	format(str_,sizeof str_,""RED"ERROR:"GREY"You need atleast "GREEN"%d "GREY" score to create a gang!",MAX_SCORE);
 	return SendClientMessage(playerid,-1,str_);
 	}
 	
