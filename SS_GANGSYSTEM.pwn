@@ -1038,7 +1038,7 @@ CMD:gcp(playerid)
 CMD:createzone(playerid,params[])
 {
 	if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to use that Command!!");
-
+    if(creatingzone[playerid])return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already creating one zone complete it using left alt key!!");
 	if(!creatingzone[playerid])
 	{
 		new Float:tempz;
@@ -1055,13 +1055,7 @@ CMD:createzone(playerid,params[])
 		return 1;
 	}
 	
-	if(creatingzone[playerid])
-	{
-		creatingzone[playerid]= false;
-		TogglePlayerControllable(playerid,false);
-        
-		return 1;
-	}
+	
 
 
 	
