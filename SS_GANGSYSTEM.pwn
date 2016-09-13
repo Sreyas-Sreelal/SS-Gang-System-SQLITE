@@ -1187,7 +1187,7 @@ public CaptureZone(playerid,zoneid)
 		{
 			GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
 			new colour[9],colour2[10];
-			format(colour2,sizeof colour2,"%06x", GInfo[playerid][gangcolor] >>> 8);
+			format(colour2,sizeof colour2,"%06x", GInfo[playerid][gangcolor] >>> 6);
 			format(colour, sizeof colour, "%s50", colour2);
 			GangZoneShowForAll(ZInfo[zoneid][_Zone], HexToInt(colour));
 			format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
