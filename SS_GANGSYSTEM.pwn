@@ -332,7 +332,7 @@ public OnPlayerConnect(playerid)
 		if(GInfo[playerid][gangmember] == 1)
 		{
 			new str[128];
-			SetTimerEx("GMoney",100000,true,"u",playerid);
+			SetTimerEx("GMoney",600000,true,"u",playerid);
 
 			if(GInfo[playerid][gangleader] == 1)
 			{
