@@ -1093,6 +1093,7 @@ CMD:capture(playerid)
 	ZInfo[i][U_Attack] = true;
 	new string[150];
 	format(string,sizeof string,""YELLOW"%s"ORANGE" gang has started to capture "GREEN"%s "ORANGE"zone",GInfo[playerid][gangname],ZInfo[i][Name]);
+	SendClientMessageToAll(-1,string);	
 	ZInfo[i][timercap] = ZONE_CAPTURE_TIME;
 	ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ui", playerid, i);
 	return 1;
