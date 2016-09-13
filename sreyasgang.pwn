@@ -89,7 +89,7 @@
 #define ZONE_COLOR   		0xF3F0E596
 #define ZONE_LOCK_TIME  	120                //NOTE:The time should be given in seconds
 #define ZONE_CAPTURE_TIME   30                //Same as above note
-#define MAX_SCORE           100              //Maximum score to create a gang
+#define MAX_SCORE           0              //Maximum score to create a gang
 //----------------------------------------------------------------------------------------
 
 
@@ -720,6 +720,8 @@ public OnPlayerLeaveArea(playerid, areaid)
 			new msg[124];
 			Capturing[playerid] = false;
   			format(msg,sizeof msg,""RED"%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone the zone.It will be locked for %d minute(s)",GInfo[playerid][gangname],ZInfo[i][Name],((ZONE_LOCK_TIME)/60));
+			KillTimer(ZInfo[i][timercap_main]);
+			PlayerTextDrawHide(playerid,TimerTD[playerid][0]);
 			SendClientMessageToAll(-1,msg);
             ZInfo[i][timer] = ZONE_LOCK_TIME;
 			ZInfo[i][locked] = true;
