@@ -61,7 +61,7 @@
 |----------------------------------------------------------------|
 */
 
- 
+
 #define FILTERSCRIPT
 
 #include<a_samp> //SA - MP TEAM
@@ -607,7 +607,7 @@ public OnPlayerUpdate(playerid) //By RyDer
 		new keys,ud,lr;
 
 		GetPlayerKeys(playerid,keys,ud,lr);
-		TogglePlayerControllable(playerid, false);
+		
 
 
 		if(lr == KEY_LEFT)
@@ -723,7 +723,7 @@ public OnPlayerLeaveArea(playerid, areaid)
 			KillTimer(ZInfo[i][timercap_main]);
 			PlayerTextDrawHide(playerid,TimerTD[playerid][0]);
 			SendClientMessageToAll(-1,msg);
-                        ZInfo[i][timer] = ZONE_LOCK_TIME;
+            ZInfo[i][timer] = ZONE_LOCK_TIME;
 			ZInfo[i][locked] = true;
 			ZInfo[i][timer_main] = SetTimerEx("UnlockZone",1000,true,"i",i);
 			}
@@ -1038,26 +1038,33 @@ CMD:gcp(playerid)
 CMD:createzone(playerid,params[])
 {
 	if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to use that Command!!");
-	if(creatingzone[playerid])
-	{
-		creatingzone[playerid]= false;
-		TogglePlayerControllable(playerid,false);
 
-		return 1;
-	}
-
-	else
 	if(!creatingzone[playerid])
 	{
 		new Float:tempz;
 		GetPlayerPos(playerid, minX[playerid], minY[playerid], tempz);
 		GetPlayerPos(playerid, maxX[playerid], maxY[playerid], tempz);
+        SendClientMessage(playerid,-1,"Use "YELLOW" Left,Right Forward and Backward "RED"keys to change size of zone");
+		SendClientMessage(playerid,-1,"Use "YELLOW"walk "RED"key to stop the process");
+		
 		creatingzone[playerid] = true;
 		tempzone[playerid] = -1;
+        
 		TogglePlayerControllable(playerid,false);
-                SendClientMessage(playerid,-1,""RED"Use "YELLOW"Left,Right Forward "RED"and "YELLOW"Backward "RED"keys to change size of zone.Use "YELLOW"walk "RED"key to stop the process");
+        
 		return 1;
 	}
+	
+	if(creatingzone[playerid])
+	{
+		creatingzone[playerid]= false;
+		TogglePlayerControllable(playerid,false);
+        
+		return 1;
+	}
+
+
+	
 	return 1;
 }
 
@@ -1081,10 +1088,9 @@ CMD:capture(playerid)
 	{
 		new str[100];
 		format(str,sizeof str,""GREY"This Zone is Locked comeback in "YELLOW"%d "GREY"seconds ",ZInfo[i][timer]);
-
-
 		return SendClientMessage(playerid,-1,str);
 	}
+
 	if(Capturing[playerid]) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"You are capturing this zone! ");
 	if(ZInfo[i][U_Attack]) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Another gan is already set an atttack on  this zone!");
 	if(!strcmp(ZInfo[i][Owner],GInfo[playerid][gangname],true)&&!isnull(ZInfo[i][Owner])) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Your Gang Own this Zone");
@@ -1093,7 +1099,7 @@ CMD:capture(playerid)
 	ZInfo[i][U_Attack] = true;
 	new string[150];
 	format(string,sizeof string,""YELLOW"%s"ORANGE" gang has started to capture "GREEN"%s "ORANGE"zone",GInfo[playerid][gangname],ZInfo[i][Name]);
-	SendClientMessageToAll(-1,string);	
+	SendClientMessageToAll(-1,string);
 	ZInfo[i][timercap] = ZONE_CAPTURE_TIME;
 	ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ui", playerid, i);
 	return 1;
