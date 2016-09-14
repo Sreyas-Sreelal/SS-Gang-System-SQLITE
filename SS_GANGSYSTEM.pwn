@@ -219,7 +219,7 @@ public OnFilterScriptInit()
 	db_query(Database,"CREATE TABLE IF NOT EXISTS Zones (Name VARCHAR(32) COLLATE NOCASE, MinX FLOAT, MinY FLOAT, MaxX FLOAT, MaxY FLOAT, Owner VARCHAR(32) COLLATE NOCASE, Color INTEGER )");
 	db_query(Database,"CREATE TABLE IF NOT EXISTS Members (UserID INTEGER PRIMARY KEY AUTOINCREMENT,UserName VARCHAR(24) COLLATE NOCASE,GangMember INTEGER DEFAULT 0,GangName VARCHAR(24) COLLATE NOCASE,GangLeader INTEGER DEFAULT 0)");
 
-	new  Query[ 89 ],DBResult: Result,var;
+	new  DBResult: Result,var;
 	Result = db_query(Database,"SELECT * FROM Zones");
 
 	if(db_num_rows(Result))
@@ -229,18 +229,13 @@ public OnFilterScriptInit()
 		{
 			var = Iter_Free(Zones);
 
-			db_get_field_assoc( Result, "MinX", Query, 7 );
-			ZInfo[var][ZminX] = strval(Query);
-			db_get_field_assoc( Result, "MinY", Query, 7 );
-			ZInfo[var][ZminY] = strval(Query);
-			db_get_field_assoc( Result, "MaxX", Query, 7 );
-			ZInfo[var][ZmaxX] = strval(Query);
-			db_get_field_assoc( Result, "MaxY", Query, 7 );
-			ZInfo[var][ZmaxY] = strval(Query);
+			ZInfo[var][ZminX] = db_get_field_assoc_int(Result, "MinX");
+			ZInfo[var][ZminY] = db_get_field_assoc_int(Result, "MinY");
+   			ZInfo[var][ZmaxX] = db_get_field_assoc_int(Result, "MaxX");
+			ZInfo[var][ZmaxY] = db_get_field_assoc_int(Result, "MaxY");
 			db_get_field_assoc(Result, "Name", ZInfo[var][Name], 56);
 			db_get_field_assoc(Result, "Owner", ZInfo[var][Owner], 56);
-			db_get_field_assoc( Result, "Color", Query, 7 );
-			ZInfo[var][Color] = strval(Query);
+			ZInfo[var][Color] = db_get_field_assoc_int(Result, "Color");
 			ZInfo[var][locked] = false;
 			ZInfo[var][Owned] = false;
 			ZInfo[var][U_Attack] = false;
@@ -1187,7 +1182,7 @@ public CaptureZone(playerid,zoneid)
 		{
 			GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
 			new colour[9],colour2[10];
-			format(colour2,sizeof colour2,"%06x", GInfo[playerid][gangcolor] >>> 6);
+			format(colour2,sizeof colour2,"%06x", GInfo[playerid][gangcolor] >>> 8);
 			format(colour, sizeof colour, "%s50", colour2);
 			GangZoneShowForAll(ZInfo[zoneid][_Zone], HexToInt(colour));
 			format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
