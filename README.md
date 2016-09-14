@@ -1,11 +1,11 @@
 # SS-Gang-System-SQLITE
 
-Hello Guys!Today im going to release my new GangSystem.This script is made for SAMP and works in SQLite environment.
+Hello Guys!Today im going to release my new GangSystem.Well this system is now in beta version as it needed to do more testing but it works.I will continue working on this fs and make it very good.For that i also need your support too.
 
 ##V 1.0 
 
-* /gcp 		- to enter gang control panel                    
-* /creategang - to create new gang                             
+*        /gcp 	    - to enter gang control panel                    
+*       /creategang - to create new gang                             
 *	/gangtag    - to add tag to your gang
 *	/gwar       - to challenge other gang members for a gang war 
 *	/gkick      - to kick a member from gang                     
