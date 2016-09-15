@@ -528,11 +528,18 @@ public OnPlayerDisconnect(playerid,reason)
 
 	SetPlayerName(playerid,GInfo[playerid][username]);//just to avoid some bugs
 
+	if(inwar[playerid])
+	{
+        inwar[playerid] = false;
+		CheckVict(GInfo[playerid][gangname],"INVALID");
+
+	}
+
 	if(GInfo[playerid][gangmember] == 1)
 	{
 		new str[128];
 
-		format(str,sizeof(str),""ORANGE"[GANGINFO]"RED"Member "CYAN"%s"RED" has Logged Out ",GInfo[playerid][username]);
+		format(str,sizeof(str),""ORANGE"[GANGINFO]"RED" Member "CYAN"%s"RED" has Logged Out ",GInfo[playerid][username]);
 
 		SendGangMessage(playerid,str);
 	}
@@ -654,17 +661,26 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					}
 
 				}
-
-				new Query[789];
-
-				format(Query,sizeof(Query),"UPDATE Gangs SET GangColor = %d Where GangName = '%q'",GInfo[playerid][gangcolor],GInfo[playerid][gangname]);
-
-				db_query(Database,Query);
-
-				SendGangMessage(playerid,""RED"Leader"YELLOW" Has changed gang color");
-
-				return 1;
 			}
+
+			else
+			{
+   				GInfo[playerid][gangcolor] = -1;
+
+				SetPlayerColor(playerid,-1);
+
+			}
+
+			new Query[789];
+
+			format(Query,sizeof(Query),"UPDATE Gangs SET GangColor = %d Where GangName = '%q'",GInfo[playerid][gangcolor],GInfo[playerid][gangname]);
+
+			db_query(Database,Query);
+
+			SendGangMessage(playerid,""RED"Leader"YELLOW" Has changed gang color");
+
+			return 1;
+
 		}
 
 		case GCP:
@@ -777,56 +793,70 @@ public OnPlayerDeath(playerid,killerid,reason)
 {
 	SendDeathMessage(killerid, playerid, reason);
 
-	if(inwar[playerid])
+	if(killerid != INVALID_PLAYER_ID)
 	{
-		inwar[playerid] = false;
-
-		SetPlayerInterior(playerid,0);
-
-		SpawnPlayer(playerid);
-		
-		CheckVict(GInfo[playerid][gangname],GInfo[killerid][gangname]);
-	}
-
-	if(GInfo[playerid][gangmember] == 1)
-	{
-		new rvg[300];
-
-		if(GInfo[killerid][gangmember] == 1)
+		if(inwar[playerid])
 		{
-			format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang %s%s",GInfo[playerid][username],GInfo[killerid][username],IntToHex(GInfo[killerid][gangcolor]),GInfo[killerid][gangname]);
+			inwar[playerid] = false;
 
-			new Query1[80],Query2[80],DBResult: Result,Score = 0;
+			SetPlayerInterior(playerid,0);
 
-			format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%s'",GInfo[killerid][gangname]);
+	  		CheckVict(GInfo[playerid][gangname],GInfo[killerid][gangname]);
+		}
 
-			Result = db_query(Database,Query1);
+		if(GInfo[playerid][gangmember] == 1)
+		{
+			new rvg[300];
 
-			if(db_num_rows(Result))
+			if(GInfo[killerid][gangmember] == 1)
 			{
+				format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang %s%s",GInfo[playerid][username],GInfo[killerid][username],IntToHex(GInfo[killerid][gangcolor]),GInfo[killerid][gangname]);
 
-				db_get_field_assoc(Result,"GangScore",Query1,10);
+				new Query1[80],Query2[80],DBResult: Result,Score = 0;
 
-				Score = strval(Query1);
+				format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%s'",GInfo[killerid][gangname]);
+
+				Result = db_query(Database,Query1);
+
+				if(db_num_rows(Result))
+				{
+
+					db_get_field_assoc(Result,"GangScore",Query1,10);
+
+					Score = strval(Query1);
+				}
+
+
+				Score++;
+
+				format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%s'",Score,GInfo[killerid][gangname]);
+
+				db_query(Database,Query2);
 			}
 
+			else
+			{
+				format(rvg,sizeof(rvg),""GREY"The member of your Gang "RED"%s "GREY"has been killed by a Player Named "RED"%s ",GInfo[playerid][username],GInfo[killerid][username]);
+			}
 
-			Score++;
-
-			format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%s'",Score,GInfo[killerid][gangname]);
-
-			db_query(Database,Query2);
+			SendGangMessage(playerid,rvg);
 		}
+	}
 
-		else
+	else
+	{
+
+		if(inwar[playerid])
 		{
-			format(rvg,sizeof(rvg),""GREY"The member of your Gang "RED"%s "GREY"has been killed by a Player Named "RED"%s ",GInfo[playerid][username],GInfo[killerid][username]);
+			inwar[playerid] = false;
+
+			CheckVict(GInfo[playerid][gangname],"INVALID");
 		}
 
-		SendGangMessage(playerid,rvg);
 	}
 
 	return 1;
+
 }
 
 
@@ -1001,7 +1031,7 @@ CMD:creategang(playerid,params[])
 
 	
 
-	if(GInfo[playerid][gangmember] == 1)return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already in a Gang /lg to leave it");
+	if(GInfo[playerid][gangmember] == 1) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already in a Gang /lg to leave it");
 
 	if(GetPlayerScore(playerid) < MAX_SCORE )
 	{
@@ -1402,6 +1432,8 @@ CMD:gwar(playerid,params[])
 
 	if(sscanf(params,"s[56]",gname)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
 
+	if(!strcmp(params,"INVALID")) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not allowed to use that name!!");
+
 	foreach( p: SS_Player)
 	{
 		if(!strcmp(GInfo[p][gangname],gname,true))
@@ -1433,6 +1465,7 @@ CMD:gwar(playerid,params[])
 			TogglePlayerControllable( i, false );
 		}
 	}
+
 	ActiveWar = true;
     
 	SetTimerEx("GangWar",10000,false,"uu",playerid,tempid);
@@ -1856,6 +1889,7 @@ public FullyConnect(playerid)
 
 		SetPlayerName(playerid,newname);
 
+		SetPlayerColor(playerid,GInfo[playerid][gangcolor]);
 	}
 
 	return 1;
@@ -1897,14 +1931,14 @@ CheckVict(gname1[],gname2[])
 	{
 		if(inwar[i] == true)
 		{
-			if(!strcmp(gname1,GInfo[i][gangname]))
+			if(!strcmp(gname1,GInfo[i][gangname]) || !strcmp(gname1,"INVALID"))
 			{
                 pid = i;
                 
 				count1++;
 			}
 
-			if(!strcmp(gname2,GInfo[i][gangname]))
+			if(!strcmp(gname2,GInfo[i][gangname]) || !strcmp(gname2,"INVALID"))
 			{
 				eid = i;
 				
@@ -1937,7 +1971,7 @@ CheckVict(gname1[],gname2[])
 		if(count1 == 0)
 		{
    			
-			format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[eid][gangcolor]),gname2,IntToHex(GInfo[pid][gangcolor]),gname1);
+			format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[eid][gangcolor]),GInfo[eid][gangname],IntToHex(GInfo[pid][gangcolor]),GInfo[pid][gangname]);
 
 			SendClientMessageToAll(-1,str);
 
@@ -1951,7 +1985,7 @@ CheckVict(gname1[],gname2[])
 
             
             
-			format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[pid][gangcolor]),gname1,IntToHex(GInfo[eid][gangcolor]),gname2);
+			format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[pid][gangcolor]),GInfo[pid][gangname],IntToHex(GInfo[eid][gangcolor]),GInfo[eid][gangname]);
 
 			SendClientMessageToAll(-1,str);
 
