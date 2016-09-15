@@ -1149,6 +1149,39 @@ CMD:setleader(playerid,params[])
 	return 1;
 }
 
+CMD:demote(playerid,params[])
+{
+
+    new giveid,str[128],Query[256];
+
+	if(sscanf(params,"u",giveid))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/demote playerid");
+
+	if(strcmp(GInfo[playerid][gangname],GInfo[giveid][gangname])) return SendClientMessage(playerid,-1,""RED"He is not in your gang!");
+
+	if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
+
+	if(GInfo[giveid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"That guy is not in a gang!");
+
+	if(GInfo[giveid][gangleader] != 1) return SendClientMessage(playerid,-1,""RED"That guy is not the head of your gang!");
+
+	if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
+
+	if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
+
+    GInfo[giveid][gangleader] = 0;
+
+    format(str,sizeof(str),""YELLOW"%s"GREY" is demoted from Gang Leader postion of "RED"%s",GInfo[giveid][username],GInfo[giveid][gangname]);
+
+	SendClientMessageToAll(-1,str);
+
+	format(Query,sizeof(Query),"UPDATE Members SET GangLeader = 0 WHERE UserName = '%q' ",GInfo[giveid][username]);
+
+	db_query( Database, Query );
+
+	return 1;
+
+}
+
 CMD:ginvite(playerid,params[])
 {
 	new giveid;
@@ -1567,6 +1600,8 @@ CMD:ghelp(playerid)
 	strcat(string,""GREEN"\t/ginvite\t\t"WHITE"-\t"ORANGE"To invite other players to the gang\n");
 
 	strcat(string,""GREEN"\t/setleader\t\t"WHITE"-\t"ORANGE"To set a member as gangleader\n");
+
+    strcat(string,""GREEN"\t/demote\t\t"WHITE"-\t"ORANGE"To demote a member from gang leader position\n");
 
 	strcat(string,""GREEN"\t/ghelp\t\t\t"WHITE"-\t"ORANGE"To view this dialog");
 
