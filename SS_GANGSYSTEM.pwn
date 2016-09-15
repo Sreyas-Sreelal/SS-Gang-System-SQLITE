@@ -449,7 +449,7 @@ public OnPlayerConnect(playerid)
 
 		db_get_field_assoc(Result, "GangName", GInfo[playerid][gangname], 56);
 
-		creatingzone[playerid]= false;
+		creatingzone[playerid] = false;
 
 		db_get_field_assoc( Result, "GangID", Query, 7 );
 
@@ -499,9 +499,14 @@ public OnPlayerConnect(playerid)
 
 			db_free_result( Result );
 
+			SetTimerEx("FullyConnected",3000,false,"u",playerid);
+
 			return 1;
+
 		}
+
 		return 1;
+
 	}
 
 	else
@@ -994,7 +999,7 @@ CMD:creategang(playerid,params[])
 {
 	new gname[32],query[256],DBResult:result,string[128];
 
-	GetPlayerName( playerid, GInfo[playerid][username], MAX_PLAYER_NAME );
+	
 
 	if(GInfo[playerid][gangmember] == 1)return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already in a Gang /lg to leave it");
 
@@ -1047,7 +1052,7 @@ CMD:creategang(playerid,params[])
 
 	SendClientMessage(playerid,-1,""RED"[GANG INFO]:"GREY"You have sucessfully create a gang");
 
-	format(string,sizeof(string),""ORANGE"%s"GREY" has created a new gang named %s%s",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][username],GInfo[playerid][gangname]);
+	format(string,sizeof(string),""ORANGE"%s"GREY" has created a new gang named %s%s",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname]);
 
 	SendClientMessageToAll(-1,string);
 
@@ -1094,6 +1099,8 @@ CMD:lg(playerid,params[])
 
 		format(str,sizeof(str),""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
 
+		SetPlayerName(playerid,GInfo[playerid][username]);
+
 		return SendClientMessageToAll(-1,str);
 	}
 
@@ -1111,6 +1118,8 @@ CMD:lg(playerid,params[])
 
 	format(ls,sizeof(ls),""RED"%s "GREY"has left Gang %s%s",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
 
+    SetPlayerName(playerid,GInfo[playerid][username]);
+    
 	SendClientMessageToAll(-1,ls);
 
 	return 1;
@@ -1350,9 +1359,11 @@ CMD:gangtag(playerid,params[])
 
 	if(sscanf(params,"s[4]",tag)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/gangtag [new tag]");
 
+	if(strlen(params)>4) return SendClientMessage(playerid,-1,""RED"Error:"GREY"tag should between 1-2 size");
+
 	GetPlayerName(playerid,newname,25);
 
-	strcat(newname,tag,sizeof(newname));
+	format(newname,sizeof(newname),"%s[%s]",newname,tag);
 
 	format(Query,sizeof(Query),"UPDATE Gangs SET GangTag = '%q' WHERE GangName = '%q'",tag,GInfo[playerid][gangname]);
 
@@ -1365,7 +1376,7 @@ CMD:gangtag(playerid,params[])
 
 			SetPlayerName(i,newname);
 
-			SendClientMessage(i,-1,""RED"Leader"WHITE"Has Set New Tag For Gang");
+			SendClientMessage(i,-1,""RED"Leader "WHITE"Has Set New Tag For Gang");
 		}
 	}
 
@@ -1832,7 +1843,24 @@ public GMoney(playerid)
 
 
 
+forward FullyConnect(playerid);
 
+public FullyConnect(playerid)
+{
+	if(!isnull(GInfo[playerid][gangtag]))
+	{
+
+		new newname[24];
+
+		format(newname,sizeof newname,"%s[%s]",GInfo[playerid][username],GInfo[playerid][gangtag]);
+
+		SetPlayerName(playerid,newname);
+
+	}
+
+	return 1;
+
+}
 
 SendGangMessage(playerid,Message[])
 {
