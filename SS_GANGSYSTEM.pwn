@@ -776,6 +776,8 @@ public OnPlayerDeath(playerid,killerid,reason)
 	{
 		inwar[playerid] = false;
 
+		SetPlayerInterior(playerid,0);
+
 		SpawnPlayer(playerid);
 		
 		CheckVict(GInfo[playerid][gangname],GInfo[killerid][gangname]);
@@ -1852,6 +1854,8 @@ CheckVict(gname1[],gname2[])
 			{
                 
 				inwar[i] = false;
+
+				SetPlayerInterior(i,0);
 
 				SpawnPlayer(i);
 			}
