@@ -1,6 +1,6 @@
 # SS-Gang-System-SQLITE
 
-Hello Guys!Today im going to release my new GangSystem.Well this system is now in beta version as it needed to do more testing but it works.I will continue working on this fs and make it very good.For that i also need your support too.
+Hello Guys!Today im going to release my new GangSystem.This fs uses SQLite saving system and requires samp 0.3.7 and sscanf plugin to make it work
 
 ##V 1.0 
 
