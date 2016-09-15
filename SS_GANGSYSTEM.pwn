@@ -789,7 +789,7 @@ public OnPlayerDeath(playerid,killerid,reason)
 
 		if(GInfo[killerid][gangmember] == 1)
 		{
-			format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang "RED"%s",GInfo[playerid][username],GInfo[killerid][username],GInfo[killerid][gangname]);
+			format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang %s%s",GInfo[playerid][username],GInfo[killerid][username],IntToHex(GInfo[killerid][gangcolor]),GInfo[killerid][gangname]);
 
 			new Query1[80],Query2[80],DBResult: Result,Score = 0;
 
@@ -956,7 +956,7 @@ public OnPlayerLeaveArea(playerid, areaid)
 
 			Capturing[playerid] = false;
 
-  			format(msg,sizeof msg,""RED"%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone.It will be locked for %d minute(s)",GInfo[playerid][gangname],ZInfo[i][Name],((ZONE_LOCK_TIME)/60));
+  			format(msg,sizeof msg,"%s%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone.It will be locked for %d minute(s)",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[i][Name],((ZONE_LOCK_TIME)/60));
 
 			KillTimer(ZInfo[i][timercap_main]);
 
@@ -1047,7 +1047,7 @@ CMD:creategang(playerid,params[])
 
 	SendClientMessage(playerid,-1,""RED"[GANG INFO]:"GREY"You have sucessfully create a gang");
 
-	format(string,sizeof(string),""ORANGE"%s"GREY" has created a new gang named "YELLOW"%s",GInfo[playerid][username],GInfo[playerid][gangname]);
+	format(string,sizeof(string),""ORANGE"%s"GREY" has created a new gang named %s%s",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][username],GInfo[playerid][gangname]);
 
 	SendClientMessageToAll(-1,string);
 
@@ -1092,7 +1092,7 @@ CMD:lg(playerid,params[])
 
 		new str[128];
 
-		format(str,sizeof(str),""RED"Leader "YELLOW"%s"RED" Has Left Gang "CYAN"%s"RED" and Gang is Destroyed",GInfo[playerid][username],gname);
+		format(str,sizeof(str),""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
 
 		return SendClientMessageToAll(-1,str);
 	}
@@ -1109,7 +1109,7 @@ CMD:lg(playerid,params[])
 
 	new ls[128];
 
-	format(ls,sizeof(ls),""RED"%s "GREY"has left Gang "YELLOW"%s",GInfo[playerid][username],gname);
+	format(ls,sizeof(ls),""RED"%s "GREY"has left Gang %s%s",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
 
 	SendClientMessageToAll(-1,ls);
 
@@ -1138,7 +1138,7 @@ CMD:setleader(playerid,params[])
 
 	GInfo[giveid][gangleader] = 1;
 
-	format(str,sizeof(str),""YELLOW"%s"GREY" is promoted to Gang Leader of "RED"%s",GInfo[giveid][username],GInfo[giveid][gangname]);
+	format(str,sizeof(str),""YELLOW"%s"GREY" is promoted to Gang Leader of %s%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[giveid][gangname]);
 
 	SendClientMessageToAll(-1,str);
 
@@ -1170,7 +1170,7 @@ CMD:demote(playerid,params[])
 
     GInfo[giveid][gangleader] = 0;
 
-    format(str,sizeof(str),""YELLOW"%s"GREY" is demoted from Gang Leader postion of "RED"%s",GInfo[giveid][username],GInfo[giveid][gangname]);
+    format(str,sizeof(str),""YELLOW"%s"GREY" is demoted from Gang Leader postion of %s%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[giveid][gangname]);
 
 	SendClientMessageToAll(-1,str);
 
@@ -1211,11 +1211,11 @@ CMD:top(playerid)
 
 	new	DBResult:result;
 
-	format(query,sizeof(query),"SELECT GangName,GangScore FROM Gangs ORDER BY GangScore DESC limit 0,10");
+	format(query,sizeof(query),"SELECT GangName,GangScore,GangColor FROM Gangs ORDER BY GangScore DESC limit 0,10");
 
 	result = db_query( Database, query );
 
-	new	scores,name[30],string[250];
+	new	scores,name[30],string[250],color;
 
 	for (new a; a < db_num_rows(result); a++, db_next_row(result))
 	{
@@ -1223,7 +1223,9 @@ CMD:top(playerid)
 
 		scores = db_get_field_assoc_int(result, "GangScore");
 
-		format(string,sizeof(string),"%s\n"WHITE"%d.)"RED" %s "CYAN" scores:"ORANGE" %i", string, a + 1, name, scores);
+		color = db_get_field_assoc_int(result, "GangColor");
+
+		format(string,sizeof(string),"%s\n"WHITE"%d.)%s %s "CYAN" scores:"ORANGE" %i", string, a + 1, IntToHex(color),name, scores);
 	}
 
 	ShowPlayerDialog(playerid, GTOP, DIALOG_STYLE_MSGBOX, ""RED"Top GANGS ", string, "Close", "");
@@ -1331,7 +1333,7 @@ CMD:gkick(playerid,params[])
 
 	db_query( Database, Query );
 
-	format(str,sizeof(str),""YELLOW"%s"GREY" has Kicked from Gang "RED"%s "GREY"by GangLeader "BLUE"%s",GInfo[giveid][username],GInfo[playerid][gangname],GInfo[playerid][username]);
+	format(str,sizeof(str),""YELLOW"%s"GREY" has Kicked from Gang %s%s "GREY"by GangLeader "BLUE"%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],GInfo[playerid][username]);
 
 	SendClientMessageToAll(-1,str);
 
@@ -1394,6 +1396,7 @@ CMD:gwar(playerid,params[])
 		if(!strcmp(GInfo[p][gangname],gname,true))
 		{
 			c1++;
+
 			tempid = p;
            
 		}
@@ -1425,7 +1428,7 @@ CMD:gwar(playerid,params[])
 
 	new str[128];
 
-	format(str,sizeof(str),""GREEN"%s"WHITE" has started a war against "RED"%s "WHITE"and will start in "YELLOW"10 seconds",GInfo[playerid][gangname],gname);
+	format(str,sizeof(str),"%s%s"WHITE" has started a war against %s%s "WHITE"and will start in "YELLOW"10 seconds",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],IntToHex(GInfo[tempid][gangcolor]),gname);
 
 	SendClientMessageToAll(-1,str);
 
@@ -1451,7 +1454,7 @@ CMD:gcp(playerid)
 	}
 
 
-	format(str,sizeof(str),""RED"GangName\t:\t"YELLOW"%s\n"PINK"GangScore\t:\t"GREEN"%d"WHITE"\nGangMembers\nTop Gangs\nGang War\nKick Member \nChange Tag \nChange Color\nSet Leader",GInfo[playerid][gangname],GScore);
+	format(str,sizeof(str),""RED"GangName\t:\t%s%s\n"PINK"GangScore\t:\t"GREEN"%d"WHITE"\nGangMembers\nTop Gangs\nGang War\nKick Member \nChange Tag \nChange Color\nSet Leader",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],GScore);
 
 	ShowPlayerDialog(playerid,GCP,DIALOG_STYLE_LIST,""RED"Gang Control Panel",str,"Ok","Cancel");
 
@@ -1535,7 +1538,7 @@ CMD:capture(playerid)
 
 	new string[150];
 
-	format(string,sizeof string,""YELLOW"%s"ORANGE" gang has started to capture "GREEN"%s "ORANGE"zone",GInfo[playerid][gangname],ZInfo[i][Name]);
+	format(string,sizeof string,"%s%s"ORANGE" gang has started to capture "GREEN"%s "ORANGE"zone",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[i][Name]);
 
 	SendClientMessageToAll(-1,string);
 
@@ -1548,7 +1551,7 @@ CMD:capture(playerid)
 
 CMD:zones(playerid)
 {
-   new string[800];
+   new string[900];
 
    foreach(new i : Zones)
    {
@@ -1556,7 +1559,7 @@ CMD:zones(playerid)
 		format(string,sizeof string,"%s"GREEN"%d.)"RED"%s\n",string,(i+1),ZInfo[i][Name]);
 
 		else
-		format(string,sizeof string,"%s"GREEN"%d.)"RED"%s"YELLOW" (%s)\n",string,(i+1),ZInfo[i][Name],ZInfo[i][Owner]);
+		format(string,sizeof string,"%s"GREEN"%d.)"RED"%s"YELLOW" %s(%s)\n",string,(i+1),ZInfo[i][Name],IntToHex(ZInfo[i][Color]),ZInfo[i][Owner]);
 
    }
 
@@ -1639,7 +1642,7 @@ public CaptureZone(playerid,zoneid)
 
 		new string[128];
 
-		format(string,sizeof string,""RED"Your Gang zone is captured by"YELLOW" %s "RED"gang ",GInfo[playerid][gangname]);
+		format(string,sizeof string,""RED"Your Gang zone is captured by"YELLOW" %s %sgang ",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname]);
 	    
 
 	    PlayerTextDrawHide(playerid,TimerTD[playerid][0]);
@@ -1684,7 +1687,7 @@ public CaptureZone(playerid,zoneid)
 
 			db_query(Database,Query_);
 
-			format(msg,sizeof msg,""RED"%s "ORANGE" gang has successfully captured"GREEN" %s "ORANGE"zone. It will be locked for "RED"%d "ORANGE"minute(s)",GInfo[playerid][gangname],ZInfo[zoneid][Name],((ZONE_LOCK_TIME)/60));
+			format(msg,sizeof msg,"%s%s "ORANGE" gang has successfully captured"GREEN" %s "ORANGE"zone. It will be locked for "RED"%d "ORANGE"minute(s)",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[zoneid][Name],((ZONE_LOCK_TIME)/60));
 
 			SendClientMessageToAll(-1,msg);
 
@@ -1860,7 +1863,7 @@ IsPlayerInArea(playerid, Float:MinX, Float:MinY, Float:MaxX, Float:MaxY)
 
 CheckVict(gname1[],gname2[])
 {
-	new count1,count2;
+	new count1,count2,pid,eid;
   
 	foreach(new i : SS_Player)
 	{
@@ -1868,12 +1871,15 @@ CheckVict(gname1[],gname2[])
 		{
 			if(!strcmp(gname1,GInfo[i][gangname]))
 			{
+                pid = i;
+                
 				count1++;
 			}
 
 			if(!strcmp(gname2,GInfo[i][gangname]))
 			{
-
+				eid = i;
+				
 				count2++;
 			}
 		}
@@ -1903,7 +1909,7 @@ CheckVict(gname1[],gname2[])
 		if(count1 == 0)
 		{
    			
-			format(str,sizeof(str),""RED"%s "WHITE"has won the war against "RED"%s",gname2,gname1);
+			format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[eid][gangcolor]),gname2,IntToHex(GInfo[pid][gangcolor]),gname1);
 
 			SendClientMessageToAll(-1,str);
 
@@ -1917,7 +1923,7 @@ CheckVict(gname1[],gname2[])
 
             
             
-			format(str,sizeof(str),""RED"%s "WHITE"has won the war against "RED"%s",gname1,gname2);
+			format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[pid][gangcolor]),gname1,IntToHex(GInfo[eid][gangcolor]),gname2);
 
 			SendClientMessageToAll(-1,str);
 
@@ -1952,6 +1958,14 @@ CheckVict(gname1[],gname2[])
 }
 
 
+IntToHex(var)
+{
+	new hex[10];
+
+    format(hex,sizeof hex,"{%06x}", var >>> 8);
+
+	return hex;
+}
 
 HexToInt(string[]) //By DracoBlue (i think)
 {
