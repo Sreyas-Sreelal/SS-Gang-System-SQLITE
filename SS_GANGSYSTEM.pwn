@@ -527,7 +527,7 @@ public OnPlayerDisconnect(playerid,reason)
 	{
 		new str[128];
 
-		format(str,sizeof(str),"Member %s has Logged Out ",GInfo[playerid][username]);
+		format(str,sizeof(str),""ORANGE"[GANGINFO]"RED"Member "CYAN"%s"RED" has Logged Out ",GInfo[playerid][username]);
 
 		SendGangMessage(playerid,str);
 	}
@@ -759,7 +759,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 				Iter_Add(Zones, var);
 
-				GangZoneShowForPlayer(playerid, ZInfo[var][_Zone],ZONE_COLOR);
+				GangZoneShowForAll(ZInfo[var][_Zone],ZONE_COLOR);
 			}
 		}
 
@@ -777,13 +777,13 @@ public OnPlayerDeath(playerid,killerid,reason)
 		inwar[playerid] = false;
 
 		SpawnPlayer(playerid);
-
+		printf("Passing on player death inwar statments");
 		CheckVict(GInfo[playerid][gangname],GInfo[killerid][gangname]);
 	}
 
 	if(GInfo[playerid][gangmember] == 1)
 	{
-		new rvg[128];
+		new rvg[300];
 
 		if(GInfo[killerid][gangmember] == 1)
 		{
@@ -1136,7 +1136,7 @@ CMD:setleader(playerid,params[])
 
 	GInfo[giveid][gangleader] = 1;
 
-	format(str,sizeof(str),"%s is promoted to Gang Leader of %s",GInfo[giveid][username],GInfo[giveid][gangname]);
+	format(str,sizeof(str),""YELLOW"%s"GREY" is promoted to Gang Leader of "RED"%s",GInfo[giveid][username],GInfo[giveid][gangname]);
 
 	SendClientMessageToAll(-1,str);
 
@@ -1282,13 +1282,13 @@ CMD:gkick(playerid,params[])
 {
 	new Query[300],giveid,str[128];
 
-	if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,"ERROR:/gkick playerid");
+	if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"/gkick playerid");
 
-	if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,"You are not a Gang Member");
+	if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
 
-	if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,"You are not authorised to do it");
+	if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to do it");
 
-	if(GInfo[giveid][gangleader] == 1) return SendClientMessage(playerid,-1,"You cant kick a group leader");
+	if(GInfo[giveid][gangleader] == 1) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You cant kick a group leader");
 
 	GInfo[giveid][gangmember] = 0;
 
@@ -1296,7 +1296,7 @@ CMD:gkick(playerid,params[])
 
 	db_query( Database, Query );
 
-	format(str,sizeof(str),""YELLOW"%s"GREY" has Kicked from Gang "RED"%s "GREY"by GangLeader "BLUE"%s",GInfo[giveid][username],GInfo[playerid][username],GInfo[playerid][username]);
+	format(str,sizeof(str),""YELLOW"%s"GREY" has Kicked from Gang "RED"%s "GREY"by GangLeader "BLUE"%s",GInfo[giveid][username],GInfo[playerid][gangname],GInfo[playerid][username]);
 
 	SendClientMessageToAll(-1,str);
 
@@ -1353,18 +1353,18 @@ CMD:gwar(playerid,params[])
 	new gname[56],c1,tempid,p;
 
 	if(sscanf(params,"s[56]",gname)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
-
+    printf("executing cmd gwar");
 	foreach( p: SS_Player)
 	{
 		if(!strcmp(GInfo[p][gangname],gname,true))
 		{
 			c1++;
 			tempid = p;
+            printf("foreach statments>>>");
 		}
 
 	}
-	tempid = p;
-
+	printf("temp id = %d",tempid);
 	if(c1 == 0)return SendClientMessage(playerid,-1,""RED"No members of that gang is online");
 
 	foreach(new i : SS_Player)
@@ -1372,7 +1372,7 @@ CMD:gwar(playerid,params[])
 		if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname]) || !strcmp(gname,GInfo[i][gangname]))
 		{
 			inwar[i] = true;
-
+            printf("forech passing>>> (inwar set to true) \ngang name %s",GInfo[i][gangname]);
 			new Random = random(sizeof(RandomSpawnsGW));
 
 			SetPlayerPos(i,RandomSpawnsGW[Random][0], RandomSpawnsGW[Random][1], RandomSpawnsGW[Random][2]);
@@ -1385,8 +1385,8 @@ CMD:gwar(playerid,params[])
 		}
 	}
 	ActiveWar = true;
-
-	SetTimerEx("GangWar",1000,false,"uu",playerid,tempid);
+    printf("timer set");
+	SetTimerEx("GangWar",10000,false,"uu",playerid,tempid);
 
 	new str[128];
 
@@ -1396,6 +1396,7 @@ CMD:gwar(playerid,params[])
 
 	return 1;
 }
+
 CMD:gcp(playerid)
 {
 
@@ -1716,13 +1717,13 @@ forward GangWar(playerid,enemyid);
 
 public GangWar(playerid,enemyid)
 {
-
+    printf("inside of Gang war callback");
 	new count1,count2;
 	foreach(new i : SS_Player)
 	{
 		if(!strcmp(GInfo[playerid][gangname],GInfo[i][gangname]))
 		{
-
+            printf("1st if in foreach gang name = %s id = %s",GInfo[i][gangname],i);
 			GivePlayerWeapon(i,34,100);
 
 			SetPlayerHealth(i,100);
@@ -1736,9 +1737,9 @@ public GangWar(playerid,enemyid)
 			count1++;
 		}
 
-		else if(!strcmp(GInfo[enemyid][gangname],GInfo[i][gangname]))
+		if(!strcmp(GInfo[enemyid][gangname],GInfo[i][gangname]))
 		{
-
+            printf("2nd if in foreach gang name = %s id = %s",GInfo[i][gangname],i);
 			GivePlayerWeapon(i,34,100);
 
 			SetPlayerHealth(i,100);
@@ -1756,6 +1757,7 @@ public GangWar(playerid,enemyid)
 
 	if(count1 ==0 || count2 ==0)
 	{
+        printf("passed count or count 2 is 0 count1 = %d,count2=%d",count1,count2);
 		foreach(new i : SS_Player)
 		{
 			if(inwar[i] == true)
@@ -1822,7 +1824,7 @@ IsPlayerInArea(playerid, Float:MinX, Float:MinY, Float:MaxX, Float:MaxY)
 CheckVict(gname1[],gname2[])
 {
 	new count1,count2;
-
+    printf("Inside of Check vict");
 	foreach(new i : SS_Player)
 	{
 		if(inwar[i] == true)
@@ -1843,12 +1845,12 @@ CheckVict(gname1[],gname2[])
 	if(count1 ==0 || count2 ==0)
 	{
 		new winner[32];
-
+        printf("inside of count checking 0 statments");
 		foreach(new i : SS_Player)
 		{
 			if(inwar[i])
 			{
-
+                printf("Foreach statemetns >>>");
 				inwar[i] = false;
 
 				SpawnPlayer(i);
@@ -1857,27 +1859,31 @@ CheckVict(gname1[],gname2[])
 
 		new str[128];
 
+		printf("count 1 = %d,count2 = %d",count1,count2);
+
 		if(count1 == 0)
 		{
-
+   			printf("count 1 is 0");
 			format(str,sizeof(str),""RED"%s "WHITE"has won the war against "RED"%s",gname2,gname1);
 
 			SendClientMessageToAll(-1,str);
 
 			ActiveWar = false;
-
+			printf("active war is set to false");
 			format(winner,sizeof winner,"%s",gname2);
 		}
 
 		else if(count2 == 0)
 		{
 
+            printf("Count 2 is 0");
+            
 			format(str,sizeof(str),""RED"%s "WHITE"has won the war against "RED"%s",gname1,gname2);
 
 			SendClientMessageToAll(-1,str);
 
 			ActiveWar = false;
-
+            printf("active war is set to false");
             format(winner,sizeof winner,"%s",gname1);
 		}
 
