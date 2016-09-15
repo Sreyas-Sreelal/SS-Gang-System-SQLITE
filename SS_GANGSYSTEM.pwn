@@ -777,7 +777,7 @@ public OnPlayerDeath(playerid,killerid,reason)
 		inwar[playerid] = false;
 
 		SpawnPlayer(playerid);
-		printf("Passing on player death inwar statments");
+		
 		CheckVict(GInfo[playerid][gangname],GInfo[killerid][gangname]);
 	}
 
@@ -1353,18 +1353,18 @@ CMD:gwar(playerid,params[])
 	new gname[56],c1,tempid,p;
 
 	if(sscanf(params,"s[56]",gname)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
-    printf("executing cmd gwar");
+
 	foreach( p: SS_Player)
 	{
 		if(!strcmp(GInfo[p][gangname],gname,true))
 		{
 			c1++;
 			tempid = p;
-            printf("foreach statments>>>");
+           
 		}
 
 	}
-	printf("temp id = %d",tempid);
+	
 	if(c1 == 0)return SendClientMessage(playerid,-1,""RED"No members of that gang is online");
 
 	foreach(new i : SS_Player)
@@ -1372,7 +1372,7 @@ CMD:gwar(playerid,params[])
 		if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname]) || !strcmp(gname,GInfo[i][gangname]))
 		{
 			inwar[i] = true;
-            printf("forech passing>>> (inwar set to true) \ngang name %s",GInfo[i][gangname]);
+            
 			new Random = random(sizeof(RandomSpawnsGW));
 
 			SetPlayerPos(i,RandomSpawnsGW[Random][0], RandomSpawnsGW[Random][1], RandomSpawnsGW[Random][2]);
@@ -1385,7 +1385,7 @@ CMD:gwar(playerid,params[])
 		}
 	}
 	ActiveWar = true;
-    printf("timer set");
+    
 	SetTimerEx("GangWar",10000,false,"uu",playerid,tempid);
 
 	new str[128];
@@ -1717,13 +1717,13 @@ forward GangWar(playerid,enemyid);
 
 public GangWar(playerid,enemyid)
 {
-    printf("inside of Gang war callback");
+    
 	new count1,count2;
 	foreach(new i : SS_Player)
 	{
 		if(!strcmp(GInfo[playerid][gangname],GInfo[i][gangname]))
 		{
-            printf("1st if in foreach gang name = %s id = %s",GInfo[i][gangname],i);
+            
 			GivePlayerWeapon(i,34,100);
 
 			SetPlayerHealth(i,100);
@@ -1739,7 +1739,7 @@ public GangWar(playerid,enemyid)
 
 		if(!strcmp(GInfo[enemyid][gangname],GInfo[i][gangname]))
 		{
-            printf("2nd if in foreach gang name = %s id = %s",GInfo[i][gangname],i);
+            
 			GivePlayerWeapon(i,34,100);
 
 			SetPlayerHealth(i,100);
@@ -1757,7 +1757,7 @@ public GangWar(playerid,enemyid)
 
 	if(count1 ==0 || count2 ==0)
 	{
-        printf("passed count or count 2 is 0 count1 = %d,count2=%d",count1,count2);
+       
 		foreach(new i : SS_Player)
 		{
 			if(inwar[i] == true)
@@ -1824,7 +1824,7 @@ IsPlayerInArea(playerid, Float:MinX, Float:MinY, Float:MaxX, Float:MaxY)
 CheckVict(gname1[],gname2[])
 {
 	new count1,count2;
-    printf("Inside of Check vict");
+  
 	foreach(new i : SS_Player)
 	{
 		if(inwar[i] == true)
@@ -1845,12 +1845,12 @@ CheckVict(gname1[],gname2[])
 	if(count1 ==0 || count2 ==0)
 	{
 		new winner[32];
-        printf("inside of count checking 0 statments");
+        
 		foreach(new i : SS_Player)
 		{
 			if(inwar[i])
 			{
-                printf("Foreach statemetns >>>");
+                
 				inwar[i] = false;
 
 				SpawnPlayer(i);
@@ -1859,31 +1859,31 @@ CheckVict(gname1[],gname2[])
 
 		new str[128];
 
-		printf("count 1 = %d,count2 = %d",count1,count2);
+		
 
 		if(count1 == 0)
 		{
-   			printf("count 1 is 0");
+   			
 			format(str,sizeof(str),""RED"%s "WHITE"has won the war against "RED"%s",gname2,gname1);
 
 			SendClientMessageToAll(-1,str);
 
 			ActiveWar = false;
-			printf("active war is set to false");
+			
 			format(winner,sizeof winner,"%s",gname2);
 		}
 
 		else if(count2 == 0)
 		{
 
-            printf("Count 2 is 0");
+            
             
 			format(str,sizeof(str),""RED"%s "WHITE"has won the war against "RED"%s",gname1,gname2);
 
 			SendClientMessageToAll(-1,str);
 
 			ActiveWar = false;
-            printf("active war is set to false");
+            
             format(winner,sizeof winner,"%s",gname1);
 		}
 
