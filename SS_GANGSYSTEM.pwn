@@ -1359,7 +1359,7 @@ CMD:gangtag(playerid,params[])
 
 	if(sscanf(params,"s[4]",tag)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/gangtag [new tag]");
 
-	if(strlen(params)>4) return SendClientMessage(playerid,-1,""RED"Error:"GREY"tag should between 1-2 size");
+	if(strlen(params)>2) return SendClientMessage(playerid,-1,""RED"Error:"GREY"tag should between 1-2 size");
 
 	GetPlayerName(playerid,newname,25);
 
