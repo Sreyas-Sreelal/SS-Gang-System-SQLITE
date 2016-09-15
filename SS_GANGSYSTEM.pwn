@@ -1046,7 +1046,9 @@ CMD:creategang(playerid,params[])
 	
 
 	if(sscanf(params,"s[56]",gname))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/creategang [GangName]");
-	
+
+	if(!strcmp(params,"INVALID",true)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"Please choose another name for your gang");
+
 	format(query,sizeof(query),"SELECT GangName FROM Gangs WHERE GangName = '%q'",gname);
 
 	result = db_query( Database, query );
