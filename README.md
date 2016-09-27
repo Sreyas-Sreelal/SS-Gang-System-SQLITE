@@ -1,6 +1,6 @@
 # SS-Gang-System-SQLITE
 
-Hello Guys!Today im going to release my new GangSystem.This fs uses SQLite saving system and requires samp 0.3.7 and sscanf plugin to make it work
+This a filterscript for SA-MP a mulitplayer modification of GTA San Andreas game by Rockstar.This script is written in pawn language with SQLite query library by SAMP team.  
 
 ##V 1.0 
 
