@@ -132,15 +132,15 @@ new Float:RandomSpawnsGW[][] =
 };
 
 
-new bool:ActiveWar = false;
+static bool:ActiveWar = false;
 
-new Iterator:Zones<MAX_GZONES>,
+static Iterator:Zones<MAX_GZONES>,
 
 	Iterator:SS_Player<MAX_PLAYERS>;//custom player iterator to overcome a bug in foreach's default one
 
-new bool:Capturing[MAX_PLAYERS];
+static bool:Capturing[MAX_PLAYERS];
 
-new PlayerText:TextDraw[MAX_PLAYERS],PlayerText:TimerTD[MAX_PLAYERS][1];
+static PlayerText:TextDraw[MAX_PLAYERS],PlayerText:TimerTD[MAX_PLAYERS][1];
 
 //-----GANG COLORS--------------------------
 
@@ -217,7 +217,7 @@ enum G_USER_DATA
 }
 
 
-new GInfo[MAX_PLAYERS][G_USER_DATA],bool:inwar[MAX_PLAYERS],DB:Database;
+static GInfo[MAX_PLAYERS][G_USER_DATA],bool:inwar[MAX_PLAYERS],DB:Database;
 
 
 enum Zone_Data
@@ -255,11 +255,11 @@ enum Zone_Data
 	_Zone
 }
 
-new ZInfo[MAX_GZONES][Zone_Data];
+static ZInfo[MAX_GZONES][Zone_Data];
 
-new bool:creatingzone[MAX_PLAYERS],tempzone[MAX_PLAYERS];
+static bool:creatingzone[MAX_PLAYERS],tempzone[MAX_PLAYERS];
 
-new Float:minX[MAX_PLAYERS],Float:minY[MAX_PLAYERS],Float:maxX[MAX_PLAYERS],Float:maxY[MAX_PLAYERS];
+static Float:minX[MAX_PLAYERS],Float:minY[MAX_PLAYERS],Float:maxX[MAX_PLAYERS],Float:maxY[MAX_PLAYERS];
 
 
 public OnFilterScriptInit()
