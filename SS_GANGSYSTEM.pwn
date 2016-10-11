@@ -824,6 +824,7 @@ public OnPlayerDeath(playerid,killerid,reason)
 					db_get_field_assoc(Result,"GangScore",Query1,10);
 
 					Score = strval(Query1);
+					db_free_result(Result);
 				}
 
 
@@ -1760,7 +1761,7 @@ public CaptureZone(playerid,zoneid)
 				db_get_field_assoc(Result,"GangScore",Query1,10);
 
 				Score = strval(Query1);
-
+                                db_free_result(result);
 			}
 
 			Score+=10;
@@ -2009,6 +2010,7 @@ CheckVict(gname1[],gname2[])
 			db_get_field_assoc(Result,"GangScore",Query1,10);
 
 			Score = strval(Query1);
+		 	db_free_result(Result);	
 		}
 
 
