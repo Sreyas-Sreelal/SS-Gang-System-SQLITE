@@ -1761,7 +1761,7 @@ public CaptureZone(playerid,zoneid)
 				db_get_field_assoc(Result,"GangScore",Query1,10);
 
 				Score = strval(Query1);
-                                db_free_result(result);
+                                db_free_result(Result);
 			}
 
 			Score+=10;
