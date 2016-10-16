@@ -1028,7 +1028,7 @@ public OnPlayerLeaveArea(playerid, areaid)
 
 CMD:creategang(playerid,params[])
 {
-	new gname[32],query[256],DBResult:result,string[128];
+	new query[256],DBResult:result,string[128];
 
 	
 
@@ -1046,11 +1046,11 @@ CMD:creategang(playerid,params[])
 	}
 	
 
-	if(sscanf(params,"s[56]",gname))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/creategang [GangName]");
+	if(isnull(params))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/creategang [GangName]");
 
 	if(!strcmp(params,"INVALID",true)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"Please choose another name for your gang");
 
-	format(query,sizeof(query),"SELECT GangName FROM Gangs WHERE GangName = '%q'",gname);
+	format(query,sizeof(query),"SELECT GangName FROM Gangs WHERE GangName = '%q'",params);
 
 	result = db_query( Database, query );
 
@@ -1064,7 +1064,7 @@ CMD:creategang(playerid,params[])
 
 	GInfo[playerid][gangmember] = 1;
 
-	GInfo[playerid][gangname] = gname;
+	GInfo[playerid][gangname] = params;
 
 	GInfo[playerid][gangleader] = 1;
 
@@ -1073,7 +1073,7 @@ CMD:creategang(playerid,params[])
 
 	new Query[128];
 
-	format(Query,sizeof(query),"UPDATE Members SET GangName = '%q' ,GangMember = 1,GangLeader = 1 WHERE UserName = '%q' ",gname,GInfo[playerid][username]);
+	format(Query,sizeof(query),"UPDATE Members SET GangName = '%q' ,GangMember = 1,GangLeader = 1 WHERE UserName = '%q' ",params,GInfo[playerid][username]);
 
 	db_query( Database, Query );
 
@@ -1384,21 +1384,21 @@ CMD:gkick(playerid,params[])
 
 CMD:gangtag(playerid,params[])
 {
-	new tag[4],newname[25],Query[245];
+	new newname[25],Query[245];
 
 	if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not a Gang Member");
 
 	if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do it");
 
-	if(sscanf(params,"s[4]",tag)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/gangtag [new tag]");
+	if(isnull(params)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/gangtag [new tag]");
 
 	if(strlen(params)>2) return SendClientMessage(playerid,-1,""RED"Error:"GREY"tag should between 1-2 size");
 
 	GetPlayerName(playerid,newname,25);
 
-	format(newname,sizeof(newname),"%s[%s]",newname,tag);
+	format(newname,sizeof(newname),"%s[%s]",newname,params);
 
-	format(Query,sizeof(Query),"UPDATE Gangs SET GangTag = '%q' WHERE GangName = '%q'",tag,GInfo[playerid][gangname]);
+	format(Query,sizeof(Query),"UPDATE Gangs SET GangTag = '%q' WHERE GangName = '%q'",params,GInfo[playerid][gangname]);
 
 	db_query(Database,Query);
 
@@ -1431,15 +1431,15 @@ CMD:gwar(playerid,params[])
 
 	if(ActiveWar == true) return SendClientMessage(playerid,-1,""RED"Error:"GREY"There is a War Going on now wait till it finishes");
 
-	new gname[56],c1,tempid,p;
+	new c1,tempid,p;
 
-	if(sscanf(params,"s[56]",gname)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
+	if(isnull(params)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
 
 	if(!strcmp(params,"INVALID")) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not allowed to use that name!!");
 
 	foreach( p: SS_Player)
 	{
-		if(!strcmp(GInfo[p][gangname],gname,true))
+		if(!strcmp(GInfo[p][gangname],params,true))
 		{
 			c1++;
 
@@ -1453,7 +1453,7 @@ CMD:gwar(playerid,params[])
 
 	foreach(new i : SS_Player)
 	{
-		if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname]) || !strcmp(gname,GInfo[i][gangname]))
+		if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname]) || !strcmp(params,GInfo[i][gangname]))
 		{
 			inwar[i] = true;
             
@@ -1475,7 +1475,7 @@ CMD:gwar(playerid,params[])
 
 	new str[128];
 
-	format(str,sizeof(str),"%s%s"WHITE" has started a war against %s%s "WHITE"and will start in "YELLOW"10 seconds",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],IntToHex(GInfo[tempid][gangcolor]),gname);
+	format(str,sizeof(str),"%s%s"WHITE" has started a war against %s%s "WHITE"and will start in "YELLOW"10 seconds",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],IntToHex(GInfo[tempid][gangcolor]),params);
 
 	SendClientMessageToAll(-1,str);
 
