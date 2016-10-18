@@ -76,30 +76,20 @@
 #include <YSI\y_areas>
 
 //-----Dialogs--------------
+enum {
 
-#define GANG_COLOR	 78
-
-#define GTOP 		 79
-
-#define GMEMBERS 	 80
-
-#define GCP 		 81
-
-#define GKICK 		 82
-
-#define GWAR 		 83
-
-#define GLEADER 	 84
-
-#define GTAG 		 85
-
-#define ZONECREATE 	 86
-
-#define ZONES        87
-
-#define GHELP        88
-
-//--------------------------
+	GANG_COLOR,
+	GTOP,
+	GMEMBERS,
+	GCP,
+	GKICK,
+	GWAR,
+	GLEADER,
+	GTAG,
+	ZONECREATE,
+	ZONES,
+	GHELP
+};
 
 
 //--------------Custom Defines-----------------------------------------------------------
@@ -136,9 +126,7 @@ static bool:ActiveWar = false;
 
 static Iterator:Zones<MAX_GZONES>,
 
-	Iterator:SS_Player<MAX_PLAYERS>;//custom player iterator to overcome a bug in foreach's default one
-
-static bool:Capturing[MAX_PLAYERS];
+		Iterator:SS_Player<MAX_PLAYERS>;//custom player iterator to overcome a bug in foreach's default one
 
 static PlayerText:TextDraw[MAX_PLAYERS],PlayerText:TimerTD[MAX_PLAYERS][1];
 
@@ -212,12 +200,14 @@ enum G_USER_DATA
 
 	gangcolor,
 
-	gangtag[4]
+	gangtag[4],
 
-}
+	bool:Capturing,
 
-
-static GInfo[MAX_PLAYERS][G_USER_DATA],bool:inwar[MAX_PLAYERS],DB:Database;
+	bool:inwar[MAX_PLAYERS]
+};
+static GInfo[MAX_PLAYERS][G_USER_DATA];
+static DB:Database;
 
 
 enum Zone_Data
