@@ -333,7 +333,7 @@ public OnFilterScriptInit()
 
 public OnFilterScriptExit()
 {
-    for(new i;i<MAX_PLAYERS;i++)
+    foreach(new i : SS_Player)
     {
         GangZoneDestroy(ZInfo[i][_Zone]);
 
