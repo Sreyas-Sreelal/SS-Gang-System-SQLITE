@@ -204,7 +204,19 @@ enum G_USER_DATA
 
     bool:Capturing,
 
-    bool:inwar
+    bool:inwar,
+
+    bool:creatingzone,
+
+    tempzone,
+
+    Float:minX, 
+
+    Float:minY,
+
+    Float:maxX,
+
+    Float:maxY
 };
 static GInfo[MAX_PLAYERS][G_USER_DATA];
 static DB:Database;
@@ -246,10 +258,6 @@ enum Zone_Data
 }
 
 static ZInfo[MAX_GZONES][Zone_Data];
-
-static bool:creatingzone[MAX_PLAYERS],tempzone[MAX_PLAYERS];
-
-static Float:minX[MAX_PLAYERS],Float:minY[MAX_PLAYERS],Float:maxX[MAX_PLAYERS],Float:maxY[MAX_PLAYERS];
 
 
 public OnFilterScriptInit()
@@ -439,7 +447,7 @@ public OnPlayerConnect(playerid)
 
         db_get_field_assoc(Result, "GangName", GInfo[playerid][gangname], 56);
 
-        creatingzone[playerid] = false;
+        GInfo[playerid][creatingzone] = false;
 
         db_get_field_assoc( Result, "GangID", Query, 7 );
 
@@ -742,19 +750,19 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             {
                 new query[256];
 
-                format(query,sizeof query,"INSERT INTO Zones (Name,MinX,MinY,MaxX,MaxY) VALUES('%q','%f','%f','%f','%f')",inputtext,minX[playerid],minY[playerid],maxX[playerid],maxY[playerid]);
+                format(query,sizeof query,"INSERT INTO Zones (Name,MinX,MinY,MaxX,MaxY) VALUES('%q','%f','%f','%f','%f')",inputtext,GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
 
                 db_query(Database,query);
 
                 new var = Iter_Free(Zones);
 
-                ZInfo[var][ZminX] = minX[playerid];
+                ZInfo[var][ZminX] = GInfo[playerid][minX];
 
-                ZInfo[var][ZminY] = minY[playerid];
+                ZInfo[var][ZminY] = GInfo[playerid][minY];
 
-                ZInfo[var][ZmaxX] = maxX[playerid];
+                ZInfo[var][ZmaxX] = GInfo[playerid][maxX];
 
-                ZInfo[var][ZmaxY] = maxY[playerid];
+                ZInfo[var][ZmaxY] = GInfo[playerid][maxY];
 
                 format(ZInfo[var][Name],24,"%s",inputtext);
 
@@ -764,9 +772,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
                 ZInfo[var][Owned] = false;
 
-                ZInfo[var][Region]  = Area_AddBox(minX[playerid],minY[playerid], maxX[playerid], maxY[playerid]);
+                ZInfo[var][Region]  = Area_AddBox(GInfo[playerid][minX],GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
 
-                ZInfo[var][_Zone] = GangZoneCreate(minX[playerid],minY[playerid], maxX[playerid], maxY[playerid]);
+                ZInfo[var][_Zone] = GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
 
                 Iter_Add(Zones, var);
 
@@ -854,7 +862,7 @@ public OnPlayerDeath(playerid,killerid,reason)
 
 public OnPlayerUpdate(playerid) //By RyDer
 {
-    if(creatingzone[playerid])
+    if(GInfo[playerid][creatingzone])
     {
         new keys,ud,lr;
 
@@ -864,26 +872,26 @@ public OnPlayerUpdate(playerid) //By RyDer
         if(lr == KEY_LEFT)
         {
 
-            minX[playerid] -= 6.0;
+            GInfo[playerid][minX] -= 6.0;
 
-            GangZoneDestroy(tempzone[playerid]);
+            GangZoneDestroy(GInfo[playerid][tempzone]);
 
-            tempzone[playerid] =  GangZoneCreate(minX[playerid],minY[playerid],maxX[playerid],maxY[playerid]);
+            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
 
-            GangZoneShowForPlayer(playerid, tempzone[playerid], ZONE_COLOR);
+            GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
 
         }
         else
         if(lr == KEY_RIGHT)
         {
 
-            maxX[playerid] += 6.0;
+            GInfo[playerid][maxX] += 6.0;
 
-            GangZoneDestroy(tempzone[playerid]);
+            GangZoneDestroy(GInfo[playerid][tempzone]);
 
-            tempzone[playerid] =  GangZoneCreate(minX[playerid],minY[playerid],maxX[playerid],maxY[playerid]);
+            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
 
-            GangZoneShowForPlayer(playerid, tempzone[playerid],ZONE_COLOR);
+            GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone],ZONE_COLOR);
 
         }
 
@@ -891,13 +899,13 @@ public OnPlayerUpdate(playerid) //By RyDer
         if(ud == KEY_UP)
         {
 
-            maxY[playerid] += 6.0;
+            GInfo[playerid][maxY] += 6.0;
 
-            GangZoneDestroy(tempzone[playerid]);
+            GangZoneDestroy(GInfo[playerid][tempzone]);
 
-            tempzone[playerid] =  GangZoneCreate(minX[playerid],minY[playerid],maxX[playerid],maxY[playerid]);
+            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
 
-            GangZoneShowForPlayer(playerid, tempzone[playerid], ZONE_COLOR);
+            GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
 
         }
 
@@ -905,13 +913,13 @@ public OnPlayerUpdate(playerid) //By RyDer
         if(ud == KEY_DOWN)
         {
 
-            minY[playerid] -= 6.0;
+            GInfo[playerid][minY] -= 6.0;
 
-            GangZoneDestroy(tempzone[playerid]);
+            GangZoneDestroy(GInfo[playerid][tempzone]);
 
-            tempzone[playerid] =  GangZoneCreate(minX[playerid],minY[playerid],maxX[playerid],maxY[playerid]);
+            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
 
-            GangZoneShowForPlayer(playerid, tempzone[playerid], ZONE_COLOR);
+            GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
 
         }
 
@@ -919,13 +927,13 @@ public OnPlayerUpdate(playerid) //By RyDer
         else if(keys & KEY_WALK)
         {
 
-            creatingzone[playerid] = false;
+            GInfo[playerid][creatingzone] = false;
 
             TogglePlayerControllable(playerid,true);
 
             ShowPlayerDialog(playerid,ZONECREATE,DIALOG_STYLE_INPUT,"Input Zone Name ","Input the name of this gang zone","Create","");
 
-            GangZoneDestroy(tempzone[playerid]);
+            GangZoneDestroy(GInfo[playerid][tempzone]);
         }
     }
     return 1;
@@ -1502,23 +1510,23 @@ CMD:createzone(playerid,params[])
 {
     if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to use that Command!!");
 
-    if(creatingzone[playerid])return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already creating one zone complete it using left alt key!!");
+    if(GInfo[playerid][creatingzone])return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already creating one zone complete it using left alt key!!");
 
-    if(!creatingzone[playerid])
+    if(!GInfo[playerid][creatingzone])
     {
         new Float:tempz;
 
-        GetPlayerPos(playerid, minX[playerid], minY[playerid], tempz);
+        GetPlayerPos(playerid, GInfo[playerid][minX], GInfo[playerid][minY], tempz);
 
-        GetPlayerPos(playerid, maxX[playerid], maxY[playerid], tempz);
+        GetPlayerPos(playerid, GInfo[playerid][maxX], GInfo[playerid][maxY], tempz);
 
         SendClientMessage(playerid,-1,"Use "YELLOW" Left,Right Forward and Backward "RED"keys to change size of zone");
 
         SendClientMessage(playerid,-1,"Use "YELLOW"walk "RED"key to stop the process");
         
-        creatingzone[playerid] = true;
+        GInfo[playerid][creatingzone] = true;
 
-        tempzone[playerid] = -1;
+        GInfo[playerid][tempzone] = -1;
         
         TogglePlayerControllable(playerid,false);
         
@@ -2043,14 +2051,3 @@ HexToInt(string[]) //By DracoBlue (i think)
     return res;
 
 }
-
-
-
-
-
-
-
-
-
-
-
