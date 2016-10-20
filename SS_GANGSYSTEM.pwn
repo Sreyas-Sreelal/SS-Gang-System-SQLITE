@@ -65,11 +65,11 @@
 #define FILTERSCRIPT
 
 
-#include<a_samp> //SA - MP TEAM
+#include <a_samp> //SA - MP TEAM
 
-#include<zcmd> //ZEEX
+#include <zcmd> //ZEEX
 
-#include<sscanf2> //Y LESS
+#include <sscanf2> //Y LESS
 
 #include<foreach> //Y LESS
 
@@ -127,8 +127,6 @@ static bool:ActiveWar = false;
 static Iterator:Zones<MAX_GZONES>,
 
         Iterator:SS_Player<MAX_PLAYERS>;//custom player iterator to overcome a bug in foreach's default one
-
-static PlayerText:TextDraw[MAX_PLAYERS],PlayerText:TimerTD[MAX_PLAYERS][1];
 
 //-----GANG COLORS--------------------------
 
@@ -216,7 +214,11 @@ enum G_USER_DATA
 
     Float:maxX,
 
-    Float:maxY
+    Float:maxY,
+
+    PlayerText:TextDraw,
+
+    PlayerText:TimerTD
 };
 static GInfo[MAX_PLAYERS][G_USER_DATA];
 static DB:Database;
@@ -369,53 +371,53 @@ public OnPlayerConnect(playerid)
     GInfo[playerid][Capturing] = false;
 
 
-    TextDraw[playerid] = CreatePlayerTextDraw(playerid,468.500823, 333.937500, " ");
+    GInfo[playerid][TextDraw] = CreatePlayerTextDraw(playerid,468.500823, 333.937500, " ");
 
-    PlayerTextDrawLetterSize(playerid, TextDraw[playerid],0.201999, 0.789999);
+    PlayerTextDrawLetterSize(playerid, GInfo[playerid][TextDraw],0.201999, 0.789999);
 
-    PlayerTextDrawTextSize(playerid, TextDraw[playerid],572.496704, -2714.384277);
+    PlayerTextDrawTextSize(playerid, GInfo[playerid][TextDraw],572.496704, -2714.384277);
 
-    PlayerTextDrawAlignment(playerid, TextDraw[playerid],1);
+    PlayerTextDrawAlignment(playerid, GInfo[playerid][TextDraw],1);
 
-    PlayerTextDrawColor(playerid, TextDraw[playerid],-100663297);
+    PlayerTextDrawColor(playerid, GInfo[playerid][TextDraw],-100663297);
 
-    PlayerTextDrawUseBox(playerid, TextDraw[playerid],2);
+    PlayerTextDrawUseBox(playerid, GInfo[playerid][TextDraw],2);
 
-    PlayerTextDrawBoxColor(playerid, TextDraw[playerid], 255);
+    PlayerTextDrawBoxColor(playerid, GInfo[playerid][TextDraw], 255);
 
-    PlayerTextDrawSetShadow(playerid, TextDraw[playerid], 0);
+    PlayerTextDrawSetShadow(playerid, GInfo[playerid][TextDraw], 0);
 
-    PlayerTextDrawSetOutline(playerid, TextDraw[playerid], 0);
+    PlayerTextDrawSetOutline(playerid, GInfo[playerid][TextDraw], 0);
 
-    PlayerTextDrawBackgroundColor(playerid, TextDraw[playerid], 255);
+    PlayerTextDrawBackgroundColor(playerid, GInfo[playerid][TextDraw], 255);
 
-    PlayerTextDrawFont(playerid, TextDraw[playerid], 1);
+    PlayerTextDrawFont(playerid, GInfo[playerid][TextDraw], 1);
 
-    PlayerTextDrawSetProportional(playerid, TextDraw[playerid], 1);
+    PlayerTextDrawSetProportional(playerid, GInfo[playerid][TextDraw], 1);
 
-    PlayerTextDrawSetShadow(playerid, TextDraw[playerid], 0);
+    PlayerTextDrawSetShadow(playerid, GInfo[playerid][TextDraw], 0);
 
 
 
-    TimerTD[playerid][0] = CreatePlayerTextDraw(playerid, 590.000000, 392.125000, "00-00");
+    GInfo[playerid][TimerTD] = CreatePlayerTextDraw(playerid, 590.000000, 392.125000, "00-00");
 
-    PlayerTextDrawLetterSize(playerid, TimerTD[playerid][0], 0.400000, 1.600000);
+    PlayerTextDrawLetterSize(playerid, GInfo[playerid][TimerTD], 0.400000, 1.600000);
 
-    PlayerTextDrawAlignment(playerid, TimerTD[playerid][0], 1);
+    PlayerTextDrawAlignment(playerid, GInfo[playerid][TimerTD], 1);
 
-    PlayerTextDrawColor(playerid, TimerTD[playerid][0], -10241);
+    PlayerTextDrawColor(playerid, GInfo[playerid][TimerTD], -10241);
 
-    PlayerTextDrawSetShadow(playerid, TimerTD[playerid][0], -1);
+    PlayerTextDrawSetShadow(playerid, GInfo[playerid][TimerTD], -1);
 
-    PlayerTextDrawSetOutline(playerid, TimerTD[playerid][0], 0);
+    PlayerTextDrawSetOutline(playerid, GInfo[playerid][TimerTD], 0);
 
-    PlayerTextDrawBackgroundColor(playerid, TimerTD[playerid][0], 255);
+    PlayerTextDrawBackgroundColor(playerid, GInfo[playerid][TimerTD], 255);
 
-    PlayerTextDrawFont(playerid, TimerTD[playerid][0], 2);
+    PlayerTextDrawFont(playerid, GInfo[playerid][TimerTD], 2);
 
-    PlayerTextDrawSetProportional(playerid, TimerTD[playerid][0], 1);
+    PlayerTextDrawSetProportional(playerid, GInfo[playerid][TimerTD], 1);
 
-    PlayerTextDrawSetShadow(playerid, TimerTD[playerid][0], -1);
+    PlayerTextDrawSetShadow(playerid, GInfo[playerid][TimerTD], -1);
 
 
     foreach(new i:Zones)
@@ -953,7 +955,7 @@ public OnPlayerEnterArea(playerid, areaid)
 
             format(str,sizeof str,"~y~Zone_Info~n~~b~Name:_~r~%s~n~~b~Status:_~r~Un_Owned",ZInfo[i][Name]);
 
-            PlayerTextDrawSetString(playerid, TextDraw[playerid],str);
+            PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw],str);
 
             }
             else
@@ -961,11 +963,11 @@ public OnPlayerEnterArea(playerid, areaid)
 
                 format(str,sizeof str,"~y~Zone_Info_~n~~b~Name:_~r~%s~n~~b~Status:_~r~Owned-by_~g~%s",ZInfo[i][Name],ZInfo[i][Owner]);
 
-                PlayerTextDrawSetString(playerid, TextDraw[playerid],str);
+                PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw],str);
 
             }
 
-            PlayerTextDrawShow(playerid,TextDraw[playerid]);
+            PlayerTextDrawShow(playerid,GInfo[playerid][TextDraw]);
 
             return 1;
         }
@@ -994,7 +996,7 @@ public OnPlayerLeaveArea(playerid, areaid)
 
             KillTimer(ZInfo[i][timercap_main]);
 
-            PlayerTextDrawHide(playerid,TimerTD[playerid][0]);
+            PlayerTextDrawHide(playerid,GInfo[playerid][TimerTD]);
 
             SendClientMessageToAll(-1,msg);
 
@@ -1009,7 +1011,7 @@ public OnPlayerLeaveArea(playerid, areaid)
 
             GangZoneStopFlashForAll(ZInfo[i][_Zone]);
             
-            PlayerTextDrawHide(playerid, TextDraw[playerid]);
+            PlayerTextDrawHide(playerid, GInfo[playerid][TextDraw]);
 
         }
     }
@@ -1678,9 +1680,9 @@ public CaptureZone(playerid,zoneid)
 
     format(str,sizeof str,"%02d-%02d",(ZInfo[zoneid][timercap]/60),ZInfo[zoneid][timercap]);
     
-    PlayerTextDrawSetString(playerid, TimerTD[playerid][0],str);
+    PlayerTextDrawSetString(playerid, GInfo[playerid][TimerTD],str);
 
-    PlayerTextDrawShow(playerid,TimerTD[playerid][0]);
+    PlayerTextDrawShow(playerid,GInfo[playerid][TimerTD]);
 
     if(ZInfo[zoneid][timercap]==0)
     {
@@ -1690,7 +1692,7 @@ public CaptureZone(playerid,zoneid)
         format(string,sizeof string,""RED"Your Gang zone is captured by"YELLOW" %s %sgang ",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname]);
         
 
-        PlayerTextDrawHide(playerid,TimerTD[playerid][0]);
+        PlayerTextDrawHide(playerid,GInfo[playerid][TimerTD]);
 
         foreach(new i : SS_Player)
         {
