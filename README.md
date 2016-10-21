@@ -34,4 +34,4 @@ This a filterscript for SA-MP a mulitplayer modification of GTA San Andreas game
 * In game dynamic gang zone creator                           
 * On entering the zone zone info will be displayed to player  
 	                                                           
-###Current Stats: Workign on optimisation.Thanks to AndySedeyn
+###Current Stats: Working on optimization.Thanks to AndySedeyn
