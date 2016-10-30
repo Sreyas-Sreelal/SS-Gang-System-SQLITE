@@ -291,6 +291,8 @@ public OnFilterScriptInit()
     {
 
         for(new i=0,j=db_num_rows(Result);i<j;i++)
+        
+        do
         {
             var = Iter_Free(Zones);
 
@@ -320,8 +322,9 @@ public OnFilterScriptInit()
 
             Iter_Add(Zones, var);
 
-            db_next_row(Result);
+            
         }
+        while(db_next_row(Result));
 
     }
 
@@ -1259,7 +1262,7 @@ CMD:top(playerid)
 
     new scores,name[30],string[250],color;
 
-    for (new a,b=db_num_rows(result); a < b; a++, db_next_row(result))
+    for (new a,b=db_num_rows(result); a != b; a++, db_next_row(result))
     {
         db_get_field_assoc(result, "GangName", name, sizeof(name));
 
@@ -1290,7 +1293,7 @@ CMD:gmembers(playerid)
 
     result = db_query(Database,Query);
 
-    for (new a,b= db_num_rows(result); a <b; a++, db_next_row(result))
+    for (new a,b= db_num_rows(result); a !=b; a++, db_next_row(result))
     {
 
         db_get_field_assoc(result, "UserName", name, sizeof(name));
