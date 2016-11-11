@@ -290,7 +290,7 @@ public OnFilterScriptInit()
     if(db_num_rows(Result))
     {
 
-        for(new i=0,j=db_num_rows(Result);i<j;i++)
+        
         
         do
         {
