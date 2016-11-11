@@ -296,13 +296,13 @@ public OnFilterScriptInit()
         {
             var = Iter_Free(Zones);
 
-            ZInfo[var][ZminX] = db_get_field_assoc_int(Result, "MinX");
+            ZInfo[var][ZminX] = db_get_field_assoc_float(Result, "MinX");
 
-            ZInfo[var][ZminY] = db_get_field_assoc_int(Result, "MinY");
+            ZInfo[var][ZminY] = db_get_field_assoc_float(Result, "MinY");
 
-            ZInfo[var][ZmaxX] = db_get_field_assoc_int(Result, "MaxX");
+            ZInfo[var][ZmaxX] = db_get_field_assoc_float(Result, "MaxX");
 
-            ZInfo[var][ZmaxY] = db_get_field_assoc_int(Result, "MaxY");
+            ZInfo[var][ZmaxY] = db_get_field_assoc_float(Result, "MaxY");
 
             db_get_field_assoc(Result, "Name", ZInfo[var][Name], 56);
 
