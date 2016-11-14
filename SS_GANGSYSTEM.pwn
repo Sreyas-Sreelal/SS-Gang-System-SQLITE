@@ -561,11 +561,9 @@ public OnPlayerText(playerid, text[])
     if(text[0] == '#' && GInfo[playerid][gangmember] == 1)
     {
 
-        new str[128],name[MAX_PLAYER_NAME];
-
-        GetPlayerName(playerid, name, sizeof(name));
-
-        format(str,sizeof(str),""RED"[GANG CHAT]"ORANGE" %s: "WHITE"%s",name,text[1]);
+        new str[128];
+       
+        format(str,sizeof(str),""RED"[GANG CHAT]"ORANGE" %s: "WHITE"%s",GInfo[playerid][username],text[1]);
 
         SendGangMessage(playerid,str);
 
@@ -1387,7 +1385,7 @@ CMD:gkick(playerid,params[])
 
 CMD:gangtag(playerid,params[])
 {
-    new newname[25],Query[245];
+    new newname[24],Query[245];
 
     if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not a Gang Member");
 
@@ -1397,10 +1395,6 @@ CMD:gangtag(playerid,params[])
 
     if(strlen(params)>2) return SendClientMessage(playerid,-1,""RED"Error:"GREY"tag should between 1-2 size");
 
-    GetPlayerName(playerid,newname,25);
-
-    format(newname,sizeof(newname),"%s[%s]",newname,params);
-
     format(Query,sizeof(Query),"UPDATE Gangs SET GangTag = '%q' WHERE GangName = '%q'",params,GInfo[playerid][gangname]);
 
     db_query(Database,Query);
@@ -1409,6 +1403,10 @@ CMD:gangtag(playerid,params[])
     {
         if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
         {
+
+            GetPlayerName(i,newname,24);
+
+            format(newname,sizeof(newname),"%s[%s]",newname,params);
 
             SetPlayerName(i,newname);
 
