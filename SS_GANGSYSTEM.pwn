@@ -481,7 +481,7 @@ public OnPlayerConnect(playerid)
             }
 
 
-            new query[880],DBResult:result;
+            new query[105],DBResult:result;
 
             format(query,sizeof(query),"SELECT * FROM Gangs Where GangName = '%q' ",GInfo[playerid][gangname]);
 
@@ -514,7 +514,7 @@ public OnPlayerConnect(playerid)
 
     else
     {
-        new GQuery[700];
+        new GQuery[107];
 
         format( GQuery, sizeof( GQuery ), "INSERT INTO Members (UserName) VALUES ('%q')", GInfo[ playerid ][ username ] );
 
@@ -672,7 +672,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             }
 
-            new Query[789];
+            new Query[116];
 
             format(Query,sizeof(Query),"UPDATE Gangs SET GangColor = %d Where GangName = '%q'",GInfo[playerid][gangcolor],GInfo[playerid][gangname]);
 
@@ -751,7 +751,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         {
             if(response)
             {
-                new query[256];
+                new query[160];
 
                 format(query,sizeof query,"INSERT INTO Zones (Name,MinX,MinY,MaxX,MaxY) VALUES('%q','%f','%f','%f','%f')",inputtext,GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
 
@@ -813,9 +813,9 @@ public OnPlayerDeath(playerid,killerid,reason)
             {
                 format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang %s%s",GInfo[playerid][username],GInfo[killerid][username],IntToHex(GInfo[killerid][gangcolor]),GInfo[killerid][gangname]);
 
-                new Query1[80],Query2[80],DBResult: Result,Score = 0;
+                new Query1[115],Query2[120],DBResult: Result,Score = 0;
 
-                format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%s'",GInfo[killerid][gangname]);
+                format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%q'",GInfo[killerid][gangname]);
 
                 Result = db_query(Database,Query1);
 
@@ -831,7 +831,7 @@ public OnPlayerDeath(playerid,killerid,reason)
 
                 Score++;
 
-                format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%s'",Score,GInfo[killerid][gangname]);
+                format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%q'",Score,GInfo[killerid][gangname]);
 
                 db_query(Database,Query2);
             }
@@ -1029,7 +1029,7 @@ public OnPlayerLeaveArea(playerid, areaid)
 
 CMD:creategang(playerid,params[])
 {
-    new query[256],DBResult:result,string[128];
+    new query[115],DBResult:result,string[128];
 
     
 
@@ -1072,13 +1072,13 @@ CMD:creategang(playerid,params[])
     ShowPlayerDialog(playerid,GANG_COLOR,DIALOG_STYLE_LIST,"Gang Color",""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow","OK","CANCEL");
 
 
-    new Query[128];
+    new Query[217];
 
     format(Query,sizeof(query),"UPDATE Members SET GangName = '%q' ,GangMember = 1,GangLeader = 1 WHERE UserName = '%q' ",params,GInfo[playerid][username]);
 
     db_query( Database, Query );
 
-    new gquery[256];
+    new gquery[190];
 
     format( gquery, sizeof( gquery ), "INSERT INTO Gangs (GangName,GangColor) VALUES ('%q','%q')", GInfo[ playerid ][ gangname ] ,GInfo[playerid][gangcolor]);
 
@@ -1097,7 +1097,7 @@ CMD:lg(playerid,params[])
 {
     if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not in a gang ");
 
-    new  gname [56],lquery[234] ;
+    new  gname [32],lquery[155] ;
 
     strcpy(gname,GInfo[playerid][gangname]) ;
 
@@ -1119,7 +1119,7 @@ CMD:lg(playerid,params[])
             }
         }
 
-        new  Query[102];
+        new  Query[105];
 
         format(Query,sizeof(Query),"DELETE FROM Gangs WHERE GangName = '%q'",gname);
 
