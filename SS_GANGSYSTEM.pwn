@@ -194,7 +194,7 @@ enum G_USER_DATA
 
     username[MAX_PLAYER_NAME],
 
-    ginvitedname[56],
+    ginvitedname[32],
 
     gangcolor,
 
@@ -304,9 +304,9 @@ public OnFilterScriptInit()
 
             ZInfo[var][ZmaxY] = db_get_field_assoc_float(Result, "MaxY");
 
-            db_get_field_assoc(Result, "Name", ZInfo[var][Name], 56);
+            db_get_field_assoc(Result, "Name", ZInfo[var][Name], 32);
 
-            db_get_field_assoc(Result, "Owner", ZInfo[var][Owner], 56);
+            db_get_field_assoc(Result, "Owner", ZInfo[var][Owner], 32);
 
             ZInfo[var][Color] = db_get_field_assoc_int(Result, "Color");
 
@@ -1241,9 +1241,9 @@ CMD:ginvite(playerid,params[])
 
     SendClientMessage(giveid,-1,""GREEN"You have recieved a gang invitation /accept or /decline to accept or decline ");
 
-    strdel(GInfo[giveid][ginvitedname],0,56);
+    strdel(GInfo[giveid][ginvitedname],0,32);
 
-    strcat(GInfo[giveid][ginvitedname], GInfo[playerid][gangname], 56);
+    strcat(GInfo[giveid][ginvitedname], GInfo[playerid][gangname], 32);
 
     return 1;
 }
@@ -1330,7 +1330,7 @@ CMD:accept(playerid)
 
     strdel(GInfo[playerid][gangname],0,56);
 
-    strcat(GInfo[playerid][gangname],GInfo[playerid][ginvitedname],55);
+    strcat(GInfo[playerid][gangname],GInfo[playerid][ginvitedname],32);
 
     GInfo[playerid][ganginvite] = false;
 
