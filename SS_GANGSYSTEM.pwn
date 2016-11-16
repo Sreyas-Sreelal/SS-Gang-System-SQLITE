@@ -1537,9 +1537,6 @@ CMD:createzone(playerid,params[])
     }
     
     
-
-
-    
     return 1;
 }
 
@@ -2041,11 +2038,12 @@ HexToInt(string[]) //By DracoBlue (i think)
 
     new i, cur=1, res = 0;
 
-    for (i=strlen(string);i>0;i--) {
+    for (i=strlen(string);i>0;i--)
+    {
 
-        if (string[i-1]<58) res=res+cur*(string[i-1]-48); else res=res+cur*(string[i-1]-65+10);
-
-
+        if (string[i-1]<58) res=res+cur*(string[i-1]-48); 
+        
+        else res=res+cur*(string[i-1]-65+10);
 
         cur=cur*16;
 
