@@ -2031,7 +2031,7 @@ IntToHex(var)
     return hex;
 }
 
-HexToInt(string[]) //By DracoBlue (i think)
+HexToInt(string[]) //By DracoBlue 
 {
 
     if (string[0] == 0) return 0;
@@ -2041,10 +2041,8 @@ HexToInt(string[]) //By DracoBlue (i think)
     for (i=strlen(string);i>0;i--)
     {
 
-        if (string[i-1]<58) res=res+cur*(string[i-1]-48); 
+        res += cur * ((string[i - 1] < 58) ? (string[i - 1] - 48) : (string[i - 1] - 65 + 10));
         
-        else res=res+cur*(string[i-1]-65+10);
-
         cur=cur*16;
 
     }
