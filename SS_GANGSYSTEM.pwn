@@ -23,9 +23,10 @@
 
 
                                       |----------------------------------------------------------------|
-                                      |       ==ADVANCED GANG SYSTEM SQLLITE==                         |
+                                      |       ==ADVANCED GANG SYSTEM MySQL==                           |
                                       |       ==AUTHOR:SREYAS==                                        |
-                                      |       ==Version:1.0==                                          |
+                                      |       ==Converted By: AndySedeyn==                             |
+                                      |        ==Version:1.1==                                         |
                                       |                                                                |
                                       |   =======Commands=========                                     |
                                       |   /gcp        - to enter gang control panel                    |
