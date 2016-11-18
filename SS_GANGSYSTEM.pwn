@@ -62,10 +62,6 @@
                                       |----------------------------------------------------------------|
 */
 
-
-#define FILTERSCRIPT
-
-
 #include <a_samp> //SA - MP TEAM
 
 #include <zcmd> //ZEEX
@@ -74,9 +70,11 @@
 
 #include <YSI\y_iterate> //Y LESS
 
-#include <YSI\y_areas>
+#include <YSI\y_areas> //Y LESS
 
-#include <a_mysql>
+#include <a_mysql> // BLUEG
+
+#include <dini> // DRACO BLUE
 
 //-----Dialogs--------------
 enum {
