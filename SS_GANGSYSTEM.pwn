@@ -260,7 +260,6 @@ enum Zone_Data
 }
 static ZInfo[MAX_GZONES][Zone_Data];
 
-new MYSQL_DATA, MYSQL_HOST, MYSQL_USER, MYSQL_PASS;
 
 public OnFilterScriptInit()
 {
@@ -269,20 +268,13 @@ public OnFilterScriptInit()
          print("Please Check MySQLConfig.ini in your scriptfiles before start the server");
          SendRconCommand("exit");
     }
-    else if(dini_Exists("MySQLConfig.ini"))
-    {
-         MYSQL_HOST = dini_Int("MySQLConfig.ini", "MYSQL_HOST");
-         MYSQL_USER = dini_Int("MySQLConfig.ini", "MYSQL_USER");
-         MYSQL_PASS = dini_Int("MySQLConfig.ini", "MYSQL_PASS");
-         MYSQL_DATA = dini_Int("MySQLConfig.ini", "MYSQL_DATA");
-    }
     print("-------------------------------------------------------");
     print("---SS_Gang---SQLITE----system---by---Sreyas---Loaded---");
     print("------Converted---to---MySQL---by---Andy---Sedeyn------");
     print("-------------------------------------------------------");
 
     mysql_log(ALL);
-    CONNECT_ID = mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DATA);
+    CONNECT_ID = mysql_connect(dini_Get("MySQLConfig.ini", "MYSQL_HOST"), dini_Get("MySQLConfig.ini", "MYSQL_USER"), dini_Get("MySQLConfig.ini", "MYSQL_PASS"), dini_Get("MySQLConfig.ini", "MYSQL_DATA"));
 
     if(mysql_errno() != 0)
     {
