@@ -813,27 +813,11 @@ public OnPlayerDeath(playerid,killerid,reason)
             {
                 format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang %s%s",GInfo[playerid][username],GInfo[killerid][username],IntToHex(GInfo[killerid][gangcolor]),GInfo[killerid][gangname]);
 
-                new Query1[115],Query2[120],DBResult: Result,Score = 0;
+                new Query[120];
+                 
+                format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+1  WHERE GangName = '%q'",GInfo[killerid][gangname]);
 
-                format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%q'",GInfo[killerid][gangname]);
-
-                Result = db_query(Database,Query1);
-
-                if(db_num_rows(Result))
-                {
-
-                    db_get_field_assoc(Result,"GangScore",Query1,10);
-
-                    Score = strval(Query1);
-                    db_free_result(Result);
-                }
-
-
-                Score++;
-
-                format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%q'",Score,GInfo[killerid][gangname]);
-
-                db_query(Database,Query2);
+                db_query(Database,Query);
             }
 
             else
@@ -1746,27 +1730,11 @@ public CaptureZone(playerid,zoneid)
 
         
 
-            new Query1[180],Query2[180],DBResult: Result,Score = 0;
+            new Query[180];
 
-            format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%q'",GInfo[playerid][gangname]);
+            format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+10 WHERE GangName = '%q'",GInfo[playerid][gangname]);
 
-            Result = db_query(Database,Query1);
-
-
-            if(db_num_rows(Result))
-            {
-
-                db_get_field_assoc(Result,"GangScore",Query1,10);
-
-                Score = strval(Query1);
-                db_free_result(Result);
-            }
-
-            Score+=10;
-
-            format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%q'",Score,GInfo[playerid][gangname]);
-
-            db_query(Database,Query2);
+            db_query(Database,Query);
 
         }
 
@@ -1996,27 +1964,11 @@ CheckVict(gname1[],gname2[])
         }
 
 
-        new Query1[180],Query2[180],DBResult: Result,Score = 0;
+        new Query[180];
+             
+        format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+5 WHERE GangName = '%q'",winner);
 
-        format(Query1,sizeof(Query1),"SELECT GangScore FROM Gangs WHERE GangName = '%q'",winner);
-
-        Result = db_query(Database,Query1);
-
-        if(db_num_rows(Result))
-        {
-
-            db_get_field_assoc(Result,"GangScore",Query1,10);
-
-            Score = strval(Query1);
-            db_free_result(Result); 
-        }
-
-
-        Score+=5;
-
-        format(Query2,sizeof(Query2),"UPDATE Gangs SET GangScore = %i WHERE GangName = '%q'",Score,winner);
-
-        db_query(Database,Query2);
+        db_query(Database,Query);
     }
     return 1;
 }
