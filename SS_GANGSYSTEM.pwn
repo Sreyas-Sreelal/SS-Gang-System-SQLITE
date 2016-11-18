@@ -97,13 +97,6 @@ enum {
 
 //--------------Custom Defines-----------------------------------------------------------
 
-#define CONNECT_ID          handle_id       // This is the name of your connection variable for the database
-
-#define MYSQL_HOST          "host_unknown"  // Database IP
-#define MYSQL_USER          "user_unknown"  // Database user
-#define MYSQL_PASS          ""  // Database password
-#define MYSQL_DATA          "table_unknown" // Database name
-
 #define MAX_GANGS           50
 
 #define MAX_GZONES          50
