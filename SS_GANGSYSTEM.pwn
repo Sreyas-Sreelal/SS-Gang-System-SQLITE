@@ -442,21 +442,17 @@ public OnPlayerConnect(playerid)
     if( db_num_rows( Result ) )
     {
 
-        db_get_field_assoc( Result, "GangMember", Query, 7 );
+        db_get_field_assoc_int( Result, "GangMember");
 
-        GInfo[ playerid ][ gangmember ] = strval( Query );
-
-        db_get_field_assoc( Result, "GangLeader", Query, 7 );
-
-        GInfo[ playerid ][ gangleader] = strval( Query );
+        db_get_field_assoc_int( Result, "GangLeader");
 
         db_get_field_assoc(Result, "GangName", GInfo[playerid][gangname], 56);
 
         GInfo[playerid][creatingzone] = false;
 
-        db_get_field_assoc( Result, "GangID", Query, 7 );
+        db_get_field_assoc_int( Result, "GangID");
 
-        GInfo[playerid][gangid] = strval(Query);
+        
 
         if(GInfo[playerid][gangmember] == 1)
         {
