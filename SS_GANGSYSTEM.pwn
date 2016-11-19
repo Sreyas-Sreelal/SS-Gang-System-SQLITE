@@ -1603,7 +1603,7 @@ CMD:ghelp(playerid)
 
     strcat(string,""GREEN"\t/creategang\t\t"WHITE"-\t"ORANGE"To create a gang\n");
 
-    strcat(string,""GREEN"\t/gangmembers\t"WHITE"-\t"ORANGE"To view all gangmembers\n");
+    strcat(string,""GREEN"\t/gmembers\t"WHITE"-\t"ORANGE"To view all gangmembers\n");
 
     strcat(string,""GREEN"\t/lg\t\t\t"WHITE"-\t"ORANGE"To leave the gang\n");
 
