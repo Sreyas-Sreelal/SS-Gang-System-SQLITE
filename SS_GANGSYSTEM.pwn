@@ -777,8 +777,8 @@ CMD:creategang(playerid, params[])
     return true;
 }
 
-forward OnGangNameCheck(playerid, params);
-public OnGangNameCheck(playerid, params)
+forward OnGangNameCheck(playerid, params[]);
+public OnGangNameCheck(playerid, params[])
 {
     new rowCount = cache_num_rows();
     if(rowCount)
