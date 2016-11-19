@@ -598,8 +598,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 ZInfo[index][ZmaxX] = GInfo[playerid][maxX];
                 ZInfo[index][ZmaxY] = GInfo[playerid][maxY];
                 
-                format(ZInfo[index][Name], MAX_PLAYER_NAME, "%s", inputtext);
-                strcpy(ZInfo[index][Owner], "");
+                strcpy(ZInfo[index][Name], inputtext, 32);
+                ZInfo[index][Owner][0] = EOS;
 
                 ZInfo[index][locked] = false;
                 ZInfo[index][Owned] = false;
@@ -629,7 +629,7 @@ public OnPlayerDeath(playerid, killerid, reason)
         if(GInfo[playerid][gangmember])
         {
             new rvg[256];
-            if(GInfo[playerid][gangmember])
+            if(GInfo[killerid][gangmember])
             {
                 format(rvg, sizeof(rvg), ""GREY"The member of your gang "YELLOW"%s"GREY" has been killed by a member "RED"(%s)"GREY" of gang %s%s", GInfo[playerid][username], GInfo[killerid][username], IntToHex(GInfo[killerid][gangcolor]), GInfo[killerid][gangname]);
                 
@@ -789,7 +789,7 @@ public OnGangNameCheck(playerid, params)
     {
         GInfo[playerid][gangmember] = true;
         GInfo[playerid][gangleader] = true;
-        format(GInfo[playerid][gangname], 32, "%s", params);
+        strcpy(GInfo[playerid][gangname], params, 32);
     
         ShowPlayerDialog(playerid, GANG_COLOR, DIALOG_STYLE_LIST, "Gang Color", ""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow", "OK", "CANCEL");
         
@@ -1226,7 +1226,7 @@ CMD:capture(playerid)
     if(!strcmp(ZInfo[i][Owner], GInfo[playerid][gangname], true) && !isnull(ZInfo[i][Owner]))
         return SendClientMessage(playerid, -1, ""RED"ERROR: "GREY"Your gang owns this zone already.");
 
-    GangZoneFlashForAll(ZInfo[i][_Zone], HexToInt("FF0000AA"));
+    GangZoneFlashForAll(ZInfo[i][_Zone], FF0000AA);
     GInfo[playerid][Capturing] = true;
     ZInfo[i][U_Attack] = true;
 
@@ -1306,16 +1306,13 @@ public CaptureZone(playerid, zoneid)
         {
             GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
             
-            new color[9], color2[10];
-            format(color2, sizeof(color2), "%06x", GInfo[playerid][gangcolor] >>> 8);
-            format(color, sizeof(color), "%s50", color2);
-            
-            GangZoneShowForAll(ZInfo[zoneid][_Zone], HexToInt(color));
+            new color = (GInfo[playerid][gangcolor] & ~0xFF) | 50;
+            GangZoneShowForAll(ZInfo[zoneid][_Zone], color);
 
-            format(ZInfo[zoneid][Owner], MAX_PLAYER_NAME, "%s", GInfo[playerid][gangname]);
+            strcpy(ZInfo[zoneid][Owner], GInfo[playerid][gangname], 32);
             ZInfo[zoneid][locked] = true;
 
-            ZInfo[zoneid][Color] = HexToInt(color);
+            ZInfo[zoneid][Color] = color;
 
             new query[200];
             mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Zones SET Owner = '%e', Color = %i, WHERE Name = '%e'", ZInfo[zoneid][Owner], ZInfo[zoneid][Color], ZInfo[zoneid][Name]);
@@ -1470,12 +1467,12 @@ CheckVict(gname1[], gname2[])
         if(count1 == 0)
         {
             format(str, sizeof(str), "%s%s "WHITE"has won the war against %s%s", IntToHex(GInfo[enemyid][gangcolor]), GInfo[enemyid][gangname], IntToHex(GInfo[pid][gangcolor]), GInfo[pid][gangname]);
-            format(winner, sizeof(winner), "%s", gname2);
+            strcpy(winner, gname2);
         }
         else if(count2 == 0)
         {
             format(str, sizeof(str), "%s%s "WHITE"has won the war against %s%s", IntToHex(GInfo[pid][gangcolor]), GInfo[pid][gangname], IntToHex(GInfo[enemyid][gangcolor]), GInfo[enemyid][gangname]);
-            format(winner, sizeof(winner), "%s", gname1);
+            strcpy(winner, gname1);
         }
         SendClientMessageToAll(-1, str);
         ActiveWar = false;
@@ -1491,23 +1488,4 @@ IntToHex(var)
     new hex[10];
     format(hex, sizeof(hex), "{%06x}", var >>> 8);
     return hex;
-}
-
-HexToInt(string[]) // By DracoBlue (I think)
-{
-    if(string[0] == 0)
-        return 0;
-
-    new i, cur = 1, res = 0;
-
-    for(i = strlen(string); --i > 0;)
-    {
-        if(string[i - 1] < 58)
-            res += (cur * (string[i - 1] - 48));
-        else
-            res += (cur * (string[i - 1] - 65 + 10));
-
-        cur *= 16;
-    }
-    return res;
 }
