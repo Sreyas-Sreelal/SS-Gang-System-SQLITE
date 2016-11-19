@@ -1271,7 +1271,7 @@ CMD:gmembers(playerid)
 
     if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
 
-    format(Query,sizeof(Query),"SELECT UserName FROM Members WHERE GangName = '%s'",GInfo[playerid][gangname]);
+    format(Query,sizeof(Query),"SELECT UserName FROM Members WHERE GangName = '%q'",GInfo[playerid][gangname]);
 
     result = db_query(Database,Query);
 
