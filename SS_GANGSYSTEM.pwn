@@ -338,7 +338,7 @@ public OnFilterScriptInit()
 
 public OnFilterScriptExit()
 {
-    foreach(new i : SS_Player)
+    foreach(new i : Zones)
     {
         GangZoneDestroy(ZInfo[i][_Zone]);
 
