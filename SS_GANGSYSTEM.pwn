@@ -1559,7 +1559,7 @@ CMD:capture(playerid)
 
     if(!strcmp(ZInfo[i][Owner],GInfo[playerid][gangname],true)&&!isnull(ZInfo[i][Owner])) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Your Gang Own this Zone");
 
-    GangZoneFlashForAll(ZInfo[i][_Zone], HexToInt("FF0000AA"));
+    GangZoneFlashForAll(ZInfo[i][_Zone], 0xFF0000AA);
 
     GInfo[playerid][Capturing] = true;
 
@@ -1692,21 +1692,12 @@ public CaptureZone(playerid,zoneid)
 
             GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
 
-            new colour[9],colour2[10];
-
-
-            format(colour2,sizeof colour2,"%06x", GInfo[playerid][gangcolor] >>> 8);
-
-            format(colour, sizeof colour, "%s50", colour2);
-
-            GangZoneShowForAll(ZInfo[zoneid][_Zone], HexToInt(colour));
+            GangZoneShowForAll(ZInfo[zoneid][_Zone], (GInfo[playerid][gangcolor] & ~0xFF) | 50);
 
             format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
 
             ZInfo[zoneid][locked] = true;
-
-        
-
+     
 
             ZInfo[zoneid][Color] = HexToInt(colour);
 
