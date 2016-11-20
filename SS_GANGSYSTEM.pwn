@@ -1080,8 +1080,7 @@ CMD:gangtag(playerid, params[])
     {
         if(!strcmp(GInfo[i][gangname], GInfo[playerid][gangname], false))
         {
-            GetPlayerName(playerid, newname, sizeof(newname));
-            format(newname, sizeof(newname), "%s[%s]", newname, params);
+            format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
             SetPlayerName(i, newname);
             SendClientMessage(playerid, -1, ""RED"Leaer "WHITE"has set new tag for gang.");
         }
