@@ -398,7 +398,7 @@ public OnMemberLoad(playerid)
 
         if(GInfo[playerid][gangmember] == 1)
         {
-            SetTimerEx("GMoney", 600000, true, "u", playerid);
+            SetTimerEx("GMoney", 600000, true, "i", playerid);
 
             if(GInfo[playerid][gangleader])
             {
@@ -432,7 +432,7 @@ public OnGangLoad(playerid)
         SetPlayerColor(playerid, GInfo[playerid][gangcolor]);
         cache_get_value_name(0, "GangTag", GInfo[playerid][gangtag], 4);
     }
-    SetTimerEx("FullyConnected", 3000, false, "u", playerid);
+    SetTimerEx("FullyConnected", 3000, false, "i", playerid);
     return true;
 }
 
@@ -1142,7 +1142,7 @@ CMD:gwar(playerid, params[])
         }
     }
     ActiveWar = true;
-    SetTimerEx("GangWar", 10000, false, "uu", playerid, tempid);
+    SetTimerEx("GangWar", 10000, false, "ii", playerid, tempid);
 
     new str[144];
     format(str, sizeof(str), "%s%s"WHITE" has started a war against %s%s "WHITE" and will start in "YELLOW"10 seconds.", IntToHex(GInfo[playerid][gangcolor]), GInfo[playerid][gangname], IntToHex(GInfo[tempid][gangcolor]), params);
@@ -1236,7 +1236,7 @@ CMD:capture(playerid)
     format(str, sizeof(str), "%s%s"ORANGE" gang has started to capture"GREEN" %s"ORANGE" zone.", IntToHex(GInfo[playerid][gangcolor]), GInfo[playerid][gangname], ZInfo[i][Name]);
     SendClientMessageToAll(-1, str);
     ZInfo[i][timercap] = ZONE_CAPTURE_TIME;
-    ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ui", playerid, i);
+    ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ii", playerid, i);
     return true;
 }
 
