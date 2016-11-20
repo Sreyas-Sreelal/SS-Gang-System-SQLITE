@@ -1030,16 +1030,19 @@ public OnAcceptedGangLoad(playerid)
 
 CMD:gkick(playerid, params[])
 {
-    new giveid;
-    if(sscanf(params, "u", giveid))
-        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /gkick [playerid]");
-
     if(!GInfo[playerid][gangmember])
         return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not a gang member.");
 
     if(!GInfo[playerid][gangleader])
         return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not authorized to do it.");
 
+    new giveid;
+    if(sscanf(params, "u", giveid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /gkick [playerid]");
+
+    if(giveid == INVALID_PLAYER_ID)
+        return SendClientMessage(playerid, -1, ""RED"Invalid player.");
+        
     if(GInfo[giveid][gangleader])
         return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You can't kick a group leader.");
 
