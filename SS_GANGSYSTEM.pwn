@@ -1082,7 +1082,7 @@ CMD:gangtag(playerid, params[])
         {
             format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
             SetPlayerName(i, newname);
-            SendClientMessage(i, -1, ""RED"Leaer "WHITE"has set new tag for gang.");
+            SendClientMessage(i, -1, ""RED"Leader "WHITE"has set new tag for gang.");
         }
     }
     return true;
