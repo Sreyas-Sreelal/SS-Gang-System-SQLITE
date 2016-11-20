@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS `Gangs` (
 	`GangTag`		VARCHAR(4)		NOT NULL,
 	`GangScore`		INT(24)			NOT NULL 			DEFAULT '0',
 
-	PRIMARY KEY(`GangID`)
+	PRIMARY KEY(`GangID`),
+	UNIQUE KEY `GangName` (`GangName`)
 );
 
 CREATE TABLE IF NOT EXISTS `Zones` (
@@ -20,7 +21,8 @@ CREATE TABLE IF NOT EXISTS `Zones` (
 	`Owner`			VARCHAR(32)		NOT NULL,
 	`Color`			INT(24)			NOT NULL,
 
-	PRIMARY KEY(`ID`)
+	PRIMARY KEY(`ID`),
+	KEY `Name_index` (`Name`)
 );
 
 CREATE TABLE IF NOT EXISTS `Members` (
@@ -31,5 +33,6 @@ CREATE TABLE IF NOT EXISTS `Members` (
 	`GangLeader`	TINYINT(1)		NOT NULL			DEFAULT '0',
 	`GangName`		VARCHAR(24)		NOT NULL,
 
-	PRIMARY KEY(`UserID`)
+	PRIMARY KEY(`UserID`),
+	UNIQUE KEY `UserName` (`UserName`)
 );
