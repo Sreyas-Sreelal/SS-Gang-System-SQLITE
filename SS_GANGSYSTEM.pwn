@@ -438,8 +438,6 @@ public OnGangLoad(playerid)
 
 public OnPlayerDisconnect(playerid, reason)
 {
-    SetPlayerName(playerid, GInfo[playerid][username]); // Avoids some bugs
-
     if(GInfo[playerid][inwar])
     {
         GInfo[playerid][inwar] = false;
@@ -771,17 +769,16 @@ CMD:creategang(playerid, params[])
     if(!strcmp(params, "INVALID", true))
         return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" Please choose a different name for your gang.");
 
-    new query[100];
-    mysql_format(CONNECT_ID, query, sizeof(query), "SELECT GangName FROM Gangs WHERE GangName = '%e'", params);
-    mysql_tquery(CONNECT_ID, query, "OnGangNameCheck", "is", playerid, params);
+    new query[115];
+    mysql_format(CONNECT_ID, query, sizeof(query), "INSERT IGNORE INTO Gangs (GangName) VALUES ('%e')", GInfo[playerid][gangname]);
+    mysql_tquery(CONNECT_ID, query, "OnGangCreate", "is", playerid, params);
     return true;
 }
 
-forward OnGangNameCheck(playerid, params[]);
-public OnGangNameCheck(playerid, params[])
+forward OnGangCreate(playerid, params[]);
+public OnGangCreate(playerid, params[])
 {
-    new rowCount = cache_num_rows();
-    if(rowCount)
+    if(!cache_affected_rows())
     {
         SendClientMessage(playerid, -1, ""RED"ERROR:"GREY"That name exists");
     }
@@ -790,19 +787,16 @@ public OnGangNameCheck(playerid, params[])
         GInfo[playerid][gangmember] = true;
         GInfo[playerid][gangleader] = true;
         strcpy(GInfo[playerid][gangname], params, 32);
-    
-        ShowPlayerDialog(playerid, GANG_COLOR, DIALOG_STYLE_LIST, "Gang Color", ""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow", "OK", "CANCEL");
-        
+
         new query[150];
         mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangName = '%e', GangMember = 1, GangLeader = 1 WHERE UserName = '%e'", params, GInfo[playerid][username]);
         mysql_tquery(CONNECT_ID, query, "", "");
 
-        mysql_format(CONNECT_ID, query, sizeof(query), "INSERT INTO Gangs (GangName, GangColor) VALUES ('%e', %d)", GInfo[playerid][gangname], GInfo[playerid][gangcolor]);
-        mysql_tquery(CONNECT_ID, query, "", "");
-
         SendClientMessage(playerid, -1, ""RED"[GANG INFO]:"GREY" You have successfully created a gang.");
-        format(query, sizeof(query), ""ORANGE"%s"GREY" has created a new gang named %s%s", GInfo[playerid][username], IntToHex(GInfo[playerid][gangcolor]), GInfo[playerid][gangname]);
+        format(query, sizeof(query), ""ORANGE"%s"GREY" has created a new gang named {FFFFFF}%s", GInfo[playerid][username], GInfo[playerid][gangname]);
         SendClientMessageToAll(-1, query);
+        
+        ShowPlayerDialog(playerid, GANG_COLOR, DIALOG_STYLE_LIST, "Gang Color", ""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow", "OK", "CANCEL");
     }
     return true;
 }
@@ -812,16 +806,16 @@ CMD:lg(playerid, params[])
     if(!GInfo[playerid][gangmember])
         return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not in a gang");
 
-    new gname[56], query[144];
+    new gname[32], query[144];
     strcpy(gname, GInfo[playerid][gangname]);
     if(GInfo[playerid][gangleader])
     {
         foreach(new i : SS_Player)
         {
-            if(!strcmp(GInfo[i][gangname], GInfo[playerid][gangname], false))
+            if(!isnull(GInfo[i][gangname]) && !strcmp(GInfo[i][gangname], gname, false))
             {
                 GInfo[i][gangmember] = false;
-                strdel(GInfo[i][gangname], 0, 32);
+                GInfo[i][gangname][0] = EOS;
 
                 if(GInfo[i][gangleader])
                 {
@@ -835,14 +829,12 @@ CMD:lg(playerid, params[])
         mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangMember = 0, GangLeader = 0, GangName = NULL WHERE GangName = '%e'", gname);
         mysql_tquery(CONNECT_ID, query, "", "");
 
-        new str[144];
-
-        format(str, sizeof(str), ""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed", GInfo[playerid][username], IntToHex(GInfo[playerid][gangcolor]), gname);
+        format(query, sizeof(query), ""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed", GInfo[playerid][username], IntToHex(GInfo[playerid][gangcolor]), gname);
         SetPlayerName(playerid, GInfo[playerid][username]);
-        return SendClientMessageToAll(-1, str);
+        return SendClientMessageToAll(-1, query);
     }
     GInfo[playerid][gangmember] = false;
-    strcpy(GInfo[playerid][gangname], "");
+    GInfo[playerid][gangname][0] = EOS;
 
     mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangMember = 0, GangLeader = 0, GangName = NULL WHERE UserName = '%e'", GInfo[playerid][username]);
     mysql_tquery(CONNECT_ID, query, "", "");
@@ -1093,6 +1085,12 @@ CMD:gangtag(playerid, params[])
 
 CMD:gangcolor(playerid)
 {
+    if(!GInfo[playerid][gangmember])
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not a gang member.");
+
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not authorized to do this.");
+        
     ShowPlayerDialog(playerid, GANG_COLOR, DIALOG_STYLE_LIST, "Gang Color", ""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow", "OK", "CANCEL");
     return true;
 }
