@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS `Gangs` (
 	`GangScore`		INT(24)			NOT NULL 			DEFAULT '0',
 
 	PRIMARY KEY(`GangID`),
-	UNIQUE KEY `GangName` (`GangName`)
+	UNIQUE KEY `GangName` (`GangName`),
+	KEY `GangScore_index` (`GangScore`)
 );
 
 CREATE TABLE IF NOT EXISTS `Zones` (
