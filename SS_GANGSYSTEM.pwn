@@ -1090,7 +1090,7 @@ CMD:lg(playerid,params[])
 
                 GInfo[i][gangmember] = 0;
 
-                strdel(GInfo[i][gangname],0,32);
+                GInfo[i][gangname][0] = EOS;
 
                 if(GInfo[i][gangleader] == 1)
                 {
@@ -1120,7 +1120,7 @@ CMD:lg(playerid,params[])
 
     GInfo[playerid][gangmember] = 0;
 
-    strcpy(GInfo[playerid][gangname],"");
+    GInfo[playerid][gangname][0] = EOS;
 
     new query[102];
 
@@ -1143,22 +1143,25 @@ CMD:lg(playerid,params[])
 
 CMD:setleader(playerid,params[])
 {
-    new giveid,str[128],Query[256];
-
-    if(sscanf(params,"u",giveid))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/setleader playerid");
-
-    if(strcmp(GInfo[playerid][gangname],GInfo[giveid][gangname])) return SendClientMessage(playerid,-1,""RED"He is not in your gang!");
-
+    
+    
     if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
+    
+    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
+
+    new giveid,str[128],Query[256];
+    
+    if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/setleader playerid");
+   
+    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
+    
+    if(strcmp(GInfo[playerid][gangname],GInfo[giveid][gangname])) return SendClientMessage(playerid,-1,""RED"He is not in your gang!");
 
     if(GInfo[giveid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"That guy is not in a gang!");
 
     if(GInfo[giveid][gangleader] == 1) return SendClientMessage(playerid,-1,""RED"That guy is already leader in you gang!");
 
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
-
-    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
-
+        
     GInfo[giveid][gangleader] = 1;
 
     format(str,sizeof(str),""YELLOW"%s"GREY" is promoted to Gang Leader of %s%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[giveid][gangname]);
@@ -1174,22 +1177,23 @@ CMD:setleader(playerid,params[])
 
 CMD:demote(playerid,params[])
 {
+    
+    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
 
+    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
+    
     new giveid,str[128],Query[256];
 
     if(sscanf(params,"u",giveid))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/demote playerid");
-
+    
+    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
+    
     if(strcmp(GInfo[playerid][gangname],GInfo[giveid][gangname])) return SendClientMessage(playerid,-1,""RED"He is not in your gang!");
-
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
-
+   
     if(GInfo[giveid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"That guy is not in a gang!");
 
     if(GInfo[giveid][gangleader] != 1) return SendClientMessage(playerid,-1,""RED"That guy is not the head of your gang!");
 
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
-
-    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
 
     GInfo[giveid][gangleader] = 0;
 
@@ -1207,11 +1211,13 @@ CMD:demote(playerid,params[])
 
 CMD:ginvite(playerid,params[])
 {
+    if(GInfo[playerid][gangleader] == 0 ) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that");
+    
     new giveid;
 
     if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/ginvite playerid");
 
-    if(GInfo[playerid][gangleader] == 0 ) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that");
+    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
 
     if(GInfo[giveid][gangmember] == 1) return SendClientMessage(playerid,-1,""RED"He is already in a gang");
 
@@ -1221,9 +1227,9 @@ CMD:ginvite(playerid,params[])
 
     SendClientMessage(giveid,-1,""GREEN"You have recieved a gang invitation /accept or /decline to accept or decline ");
 
-    strdel(GInfo[giveid][ginvitedname],0,32);
+    GInfo[giveid][ginvitedname][0] = EOS;
 
-    strcat(GInfo[giveid][ginvitedname], GInfo[playerid][gangname], 32);
+    strcpy(GInfo[giveid][ginvitedname], GInfo[playerid][gangname]);
 
     return 1;
 }
@@ -1238,7 +1244,7 @@ CMD:top(playerid)
 
     result = db_query( Database, query );
 
-    new scores,name[30],string[250],color;
+    new scores,name[30],string[512],color;
 
     for (new a,b=db_num_rows(result); a != b; a++, db_next_row(result))
     {
@@ -1261,11 +1267,12 @@ CMD:top(playerid)
 
 CMD:gmembers(playerid)
 {
+    
+    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+
     new Query[256],name[30],string[250];
 
     new DBResult:result;
-
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
 
     format(Query,sizeof(Query),"SELECT UserName FROM Members WHERE GangName = '%q'",GInfo[playerid][gangname]);
 
@@ -1308,9 +1315,9 @@ CMD:accept(playerid)
 
     GInfo[playerid][gangmember] = 1;
 
-    strdel(GInfo[playerid][gangname],0,56);
+    GInfo[playerid][gangname][0] = EOS;
 
-    strcat(GInfo[playerid][gangname],GInfo[playerid][ginvitedname],32);
+    strcpy(GInfo[playerid][gangname],GInfo[playerid][ginvitedname]);
 
     GInfo[playerid][ganginvite] = false;
 
@@ -1340,13 +1347,16 @@ CMD:accept(playerid)
 
 CMD:gkick(playerid,params[])
 {
-    new Query[300],giveid,str[128];
-
-    if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"/gkick playerid");
-
+    
     if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to do it");
+
+    new Query[300],giveid,str[128];
+
+    if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"/gkick playerid");
+   
+    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
 
     if(GInfo[giveid][gangleader] == 1) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You cant kick a group leader");
 
@@ -1688,14 +1698,16 @@ public CaptureZone(playerid,zoneid)
 
             GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
 
-            GangZoneShowForAll(ZInfo[zoneid][_Zone], (GInfo[playerid][gangcolor] & ~0xFF) | 50);
+            new color = (GInfo[playerid][gangcolor] & ~0xFF) | 50;
+           
+            GangZoneShowForAll(ZInfo[zoneid][_Zone], color);
 
             format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
 
             ZInfo[zoneid][locked] = true;
      
 
-            ZInfo[zoneid][Color] = HexToInt(colour);
+            ZInfo[zoneid][Color] = color;
 
             new Query_[300],msg[150];
 
@@ -1970,22 +1982,3 @@ IntToHex(var)
     return hex;
 }
 
-HexToInt(string[]) //By DracoBlue 
-{
-
-    if (string[0] == 0) return 0;
-
-    new i, cur=1, res = 0;
-
-    for (i=strlen(string);i>0;i--)
-    {
-
-        res += cur * ((string[i - 1] < 58) ? (string[i - 1] - 48) : (string[i - 1] - 65 + 10));
-        
-        cur=cur*16;
-
-    }
-
-    return res;
-
-}
