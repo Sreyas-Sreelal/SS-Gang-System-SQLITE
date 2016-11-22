@@ -1090,8 +1090,8 @@ CMD:gangtag(playerid, params[])
     if(isnull(params))
         return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY"/gangtag [newtag]");
 
-    if(strlen(params) > 2)
-        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" tag can only be up to 2 characters long.");
+    if(strlen(params) > 3)
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" tag can only be up to 3 characters long.");
 
     new query[120], gang_id = GInfo[playerid][gang_index];
     mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Gangs SET GangTag = '%e' WHERE GangID = %d", params, Gang[gang_id][gangid]);
