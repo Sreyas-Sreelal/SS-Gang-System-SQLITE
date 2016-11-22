@@ -458,7 +458,7 @@ public OnPlayerConnect(playerid)
         {
             new str[128];
 
-            SetTimerEx("GMoney",600000,true,"u",playerid);
+            SetTimerEx("GMoney",600000,true,"i",playerid);
 
             if(GInfo[playerid][gangleader] == 1)
             {
@@ -498,7 +498,7 @@ public OnPlayerConnect(playerid)
 
             db_free_result( Result );
 
-            SetTimerEx("FullyConnected",3000,false,"u",playerid);
+            SetTimerEx("FullyConnected",3000,false,"i",playerid);
 
             return 1;
 
@@ -1394,9 +1394,7 @@ CMD:gangtag(playerid,params[])
         if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
         {
 
-            GetPlayerName(i,newname,24);
-
-            format(newname,sizeof(newname),"%s[%s]",newname,params);
+           format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
 
             SetPlayerName(i,newname);
 
@@ -1462,7 +1460,7 @@ CMD:gwar(playerid,params[])
 
     ActiveWar = true;
     
-    SetTimerEx("GangWar",10000,false,"uu",playerid,tempid);
+    SetTimerEx("GangWar",10000,false,"ii",playerid,tempid);
 
     new str[128];
 
@@ -1579,7 +1577,7 @@ CMD:capture(playerid)
 
     ZInfo[i][timercap] = ZONE_CAPTURE_TIME;
 
-    ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ui", playerid, i);
+    ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ii", playerid, i);
 
     return 1;
 }
