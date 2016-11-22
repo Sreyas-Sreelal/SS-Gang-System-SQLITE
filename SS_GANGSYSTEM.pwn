@@ -23,9 +23,10 @@
 
 
                                       |----------------------------------------------------------------|
-                                      |       ==ADVANCED GANG SYSTEM SQLLITE==                         |
+                                      |       ==ADVANCED GANG SYSTEM MySQL==                           |
                                       |       ==AUTHOR:SREYAS==                                        |
-                                      |       ==Version:1.0==                                          |
+                                      |       ==Converted By: AndySedeyn==                             |
+                                      |        ==Version:1.1==                                         |
                                       |                                                                |
                                       |   =======Commands=========                                     |
                                       |   /gcp        - to enter gang control panel                    |
@@ -64,16 +65,19 @@
 
 #define FILTERSCRIPT
 
-
 #include <a_samp> //SA - MP TEAM
 
-#include <zcmd> //ZEEX
+#undef MAX_PLAYERS
+#define MAX_PLAYERS 50 // change to server slots
 
+#define FOREACH_VEHICLE_ITERATOR 0
+#define FOREACH_ACTOR_ITERATOR 0
+#include <foreach> //Y LESS
+
+#include <a_mysql> // BlueG
 #include <sscanf2> //Y LESS
-
-#include <YSI\y_iterate> //Y LESS
-
-#include <YSI\y_areas>
+#include <streamer> //INCOGNITO
+#include <zcmd> //ZEEX
 
 //-----Dialogs--------------
 enum {
@@ -93,6 +97,13 @@ enum {
 
 
 //--------------Custom Defines-----------------------------------------------------------
+
+#define CONNECT_ID          handle_id       // This is the name of your connection variable for the database
+
+#define MYSQL_HOST          "host_unknown"  // Database IP
+#define MYSQL_USER          "user_unknown"  // Database user
+#define MYSQL_PASS          ""  // Database password
+#define MYSQL_DATA          "db_unknown" // Database name
 
 #define MAX_GANGS           50
 
@@ -122,11 +133,9 @@ new Float:RandomSpawnsGW[][] =
 };
 
 
-static bool:ActiveWar = false;
+static bool:ActiveWar = false, GWar_Gang1, GWar_Gang2;
 
-static Iterator:Zones<MAX_GZONES>,
-
-        Iterator:SS_Player<MAX_PLAYERS>;//custom player iterator to overcome a bug in foreach's default one
+static Iterator:Zones<MAX_GZONES>, Iterator:Gangs<MAX_GANGS>;
 
 //-----GANG COLORS--------------------------
 
@@ -152,7 +161,9 @@ static Iterator:Zones<MAX_GZONES>,
 
 //------------------------------------------
 
-
+#if !defined strcpy
+    #define strcpy(%0,%1) strcat((%0[0] = EOS, %0), %1)
+#endif
 
 //------Colors-----------------------------
 
@@ -178,25 +189,24 @@ static Iterator:Zones<MAX_GZONES>,
 
 //---------------------------------------
 
-
+enum G_GANG_DATA
+{
+    gangid,
+    gangname[32],
+    gangcolor,
+    gangtag[4]
+}
+static Gang[MAX_GANGS][G_GANG_DATA];
 
 enum G_USER_DATA
 {
-    gangmember,
+    bool:gangleader,
 
-    gangleader,
+    gang_index,
 
-    gangname[32],
-
-    gangid,
-
-    bool:ganginvite,
+    ganginvited,
 
     username[MAX_PLAYER_NAME],
-
-    ginvitedname[32],
-
-    gangcolor,
 
     gangtag[4],
 
@@ -208,7 +218,7 @@ enum G_USER_DATA
 
     tempzone,
 
-    Float:minX, 
+    Float:minX,
 
     Float:minY,
 
@@ -218,17 +228,17 @@ enum G_USER_DATA
 
     PlayerText:TextDraw,
 
-    PlayerText:TimerTD
+    PlayerText:TimerTD,
+    
+    in_zone
 };
 static GInfo[MAX_PLAYERS][G_USER_DATA];
-static DB:Database;
-
 
 enum Zone_Data
 {
     Color,
 
-    Owner[32],
+    Owner,
 
     bool:Owned,
 
@@ -258,330 +268,241 @@ enum Zone_Data
 
     _Zone
 }
-
 static ZInfo[MAX_GZONES][Zone_Data];
 
-
+static MySQL:CONNECT_ID;
 public OnFilterScriptInit()
 {
-
     print("-------------------------------------------------------");
-
     print("---SS_Gang---SQLITE----system---by---Sreyas---Loaded---");
-
+    print("------Converted---to---MySQL---by---Andy---Sedeyn------");
     print("-------------------------------------------------------");
 
+    CONNECT_ID = mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DATA);
 
-    Database = db_open("gang.db");
-
-    db_query( Database, "PRAGMA synchronous = OFF" );
-
-    db_query(Database,"CREATE TABLE IF NOT EXISTS Gangs (GangID INTEGER PRIMARY KEY AUTOINCREMENT,GangName VARCHAR(24) COLLATE NOCASE ,GangColor INTEGER,GangTag VARCHAR(4),GangScore INTEGER DEFAULT 0)");
-
-    db_query(Database,"CREATE TABLE IF NOT EXISTS Zones (Name VARCHAR(32) COLLATE NOCASE, MinX FLOAT, MinY FLOAT, MaxX FLOAT, MaxY FLOAT, Owner VARCHAR(32) COLLATE NOCASE, Color INTEGER )");
-
-    db_query(Database,"CREATE TABLE IF NOT EXISTS Members (UserID INTEGER PRIMARY KEY AUTOINCREMENT,UserName VARCHAR(24) COLLATE NOCASE,GangMember TINYINT DEFAULT 0,GangName VARCHAR(24) COLLATE NOCASE,GangLeader TINYINT DEFAULT 0)");
-
-
-    new  DBResult: Result,var;
-
-    Result = db_query(Database,"SELECT * FROM Zones");
-
-    if(db_num_rows(Result))
+    if(mysql_errno() != 0)
     {
-
-        
-        
-        do
-        {
-            var = Iter_Free(Zones);
-
-            ZInfo[var][ZminX] = db_get_field_assoc_float(Result, "MinX");
-
-            ZInfo[var][ZminY] = db_get_field_assoc_float(Result, "MinY");
-
-            ZInfo[var][ZmaxX] = db_get_field_assoc_float(Result, "MaxX");
-
-            ZInfo[var][ZmaxY] = db_get_field_assoc_float(Result, "MaxY");
-
-            db_get_field_assoc(Result, "Name", ZInfo[var][Name], 32);
-
-            db_get_field_assoc(Result, "Owner", ZInfo[var][Owner], 32);
-
-            ZInfo[var][Color] = db_get_field_assoc_int(Result, "Color");
-
-            ZInfo[var][locked] = false;
-
-            ZInfo[var][Owned] = false;
-
-            ZInfo[var][U_Attack] = false;
-
-            ZInfo[var][Region]  = Area_AddBox( ZInfo[var][ZminX] ,ZInfo[var][ZminY],  ZInfo[var][ZmaxX], ZInfo[var][ZmaxY]);
-
-            ZInfo[var][_Zone] = GangZoneCreate( ZInfo[var][ZminX] ,ZInfo[var][ZminY],  ZInfo[var][ZmaxX], ZInfo[var][ZmaxY]);
-
-            Iter_Add(Zones, var);
-
-            
-        }
-        while(db_next_row(Result));
-
+        print("[SS_Gang]: Failed to connect to the database!");
+        return 1;
     }
+    else
+    {
+        print("[SS_Gang]: Connection to the database successful!");
+    }
+    
+    GWar_Gang1 = GWar_Gang2 = -1;
+    
+    mysql_tquery(CONNECT_ID, "SELECT * FROM gangs", "OnGangsLoad");
+    mysql_tquery(CONNECT_ID, "SELECT * FROM zones", "OnZonesLoad");
 
-    db_free_result( Result );
-
-
-    return 1;
+    foreach(new i : Player) OnPlayerConnect(i);
+    return true;
 }
 
+forward OnGangsLoad();
+public OnGangsLoad()
+{
+    new rowCount = cache_num_rows(), i;
+    for(i = 0; i < rowCount; i++)
+    {
+        cache_get_value_name_int(i, "GangID", Gang[i][gangid]);
+        cache_get_value_name(i, "GangName", Gang[i][gangname], 32);
+        cache_get_value_name_int(i, "GangColor", Gang[i][gangcolor]);
+        cache_get_value_name(i, "GangTag", Gang[i][gangtag]);
+        
+        Iter_Add(Gangs, i);
+    }
+}
 
+forward OnZonesLoad();
+public OnZonesLoad()
+{
+    new rowCount = cache_num_rows(), i, j, gang_id;
+    for(i = 0; i < rowCount; i++)
+    {
+        cache_get_value_name_float(i, "MinX", ZInfo[i][ZminX]);
+        cache_get_value_name_float(i, "MinY", ZInfo[i][ZminY]);
+        cache_get_value_name_float(i, "MaxX", ZInfo[i][ZmaxX]);
+        cache_get_value_name_float(i, "MaxY", ZInfo[i][ZmaxY]);
+
+        cache_get_value_name(i, "Name", ZInfo[i][Name], 56);
+        cache_get_value_name_int(i, "Owner", gang_id);
+        ZInfo[i][Owner] = -1;
+        
+        if (gang_id)
+        {
+            foreach(j : Gangs)
+            {
+                if (gang_id == Gang[j][gangid])
+                {
+                    ZInfo[i][Owner] = j;
+                    break;
+                }
+            }
+        }
+		
+        cache_get_value_name_int(i, "Color", ZInfo[i][Color]);
+
+        ZInfo[i][locked] = false;
+        ZInfo[i][Owned] = false;
+        ZInfo[i][U_Attack] = false;
+
+        ZInfo[i][Region] = CreateDynamicRectangle(ZInfo[i][ZminX], ZInfo[i][ZminY], ZInfo[i][ZmaxX], ZInfo[i][ZmaxY]);
+        Streamer_SetIntData(STREAMER_TYPE_AREA, ZInfo[i][Region], E_STREAMER_EXTRA_ID, MAX_GZONES + i);
+        
+        ZInfo[i][_Zone] = GangZoneCreate(ZInfo[i][ZminX], ZInfo[i][ZminY], ZInfo[i][ZmaxX], ZInfo[i][ZmaxY]);
+
+        Iter_Add(Zones, i);
+    }
+    return true;
+}
 
 public OnFilterScriptExit()
 {
     foreach(new i : Zones)
     {
         GangZoneDestroy(ZInfo[i][_Zone]);
-
-        Area_Delete(ZInfo[i][Region]);
     }
-
+    Streamer_DestroyAllItems(STREAMER_TYPE_AREA, 0);
     Iter_Clear(Zones);
-
-    Iter_Clear(SS_Player);
-
-    db_close( Database );
+    Iter_Clear(Gangs);
 
     print("---------------------------------------------------------");
-
     print("---SS_Gang---SQLITE----system---by---Sreyas---UnLoaded---");
-
     print("-------------------------------------------------------\n");
-
-    return 1;
+    return true;
 }
-
-
-
 
 public OnPlayerConnect(playerid)
 {
-    for( new i; i < _: G_USER_DATA; ++i ) GInfo[ playerid ][ G_USER_DATA: i ] = 0;
+    static const empty_player[G_USER_DATA];
+    GInfo[playerid] = empty_player;
 
-    Iter_Add(SS_Player,playerid);
-
-    GetPlayerName( playerid, GInfo[playerid][username], MAX_PLAYER_NAME );
-
-    GInfo[playerid][Capturing] = false;
-
+    GetPlayerName(playerid, GInfo[playerid][username], MAX_PLAYER_NAME);
 
     GInfo[playerid][TextDraw] = CreatePlayerTextDraw(playerid,468.500823, 333.937500, " ");
-
     PlayerTextDrawLetterSize(playerid, GInfo[playerid][TextDraw],0.201999, 0.789999);
-
     PlayerTextDrawTextSize(playerid, GInfo[playerid][TextDraw],572.496704, -2714.384277);
-
     PlayerTextDrawAlignment(playerid, GInfo[playerid][TextDraw],1);
-
     PlayerTextDrawColor(playerid, GInfo[playerid][TextDraw],-100663297);
-
     PlayerTextDrawUseBox(playerid, GInfo[playerid][TextDraw],2);
-
     PlayerTextDrawBoxColor(playerid, GInfo[playerid][TextDraw], 255);
-
     PlayerTextDrawSetShadow(playerid, GInfo[playerid][TextDraw], 0);
-
     PlayerTextDrawSetOutline(playerid, GInfo[playerid][TextDraw], 0);
-
     PlayerTextDrawBackgroundColor(playerid, GInfo[playerid][TextDraw], 255);
-
     PlayerTextDrawFont(playerid, GInfo[playerid][TextDraw], 1);
-
     PlayerTextDrawSetProportional(playerid, GInfo[playerid][TextDraw], 1);
-
     PlayerTextDrawSetShadow(playerid, GInfo[playerid][TextDraw], 0);
-
-
 
     GInfo[playerid][TimerTD] = CreatePlayerTextDraw(playerid, 590.000000, 392.125000, "00-00");
-
     PlayerTextDrawLetterSize(playerid, GInfo[playerid][TimerTD], 0.400000, 1.600000);
-
     PlayerTextDrawAlignment(playerid, GInfo[playerid][TimerTD], 1);
-
     PlayerTextDrawColor(playerid, GInfo[playerid][TimerTD], -10241);
-
     PlayerTextDrawSetShadow(playerid, GInfo[playerid][TimerTD], -1);
-
     PlayerTextDrawSetOutline(playerid, GInfo[playerid][TimerTD], 0);
-
     PlayerTextDrawBackgroundColor(playerid, GInfo[playerid][TimerTD], 255);
-
     PlayerTextDrawFont(playerid, GInfo[playerid][TimerTD], 2);
-
     PlayerTextDrawSetProportional(playerid, GInfo[playerid][TimerTD], 1);
-
     PlayerTextDrawSetShadow(playerid, GInfo[playerid][TimerTD], -1);
 
-
-    foreach(new i:Zones)
+    foreach(new i : Zones)
     {
-
-        if(isnull(ZInfo[i][Owner]))
-        GangZoneShowForPlayer(playerid,ZInfo[i][_Zone], ZONE_COLOR);
-
-        else
-        GangZoneShowForPlayer(playerid,ZInfo[i][_Zone], ZInfo[i][Color]);
+        if(ZInfo[i][Owner] == -1) GangZoneShowForPlayer(playerid, ZInfo[i][_Zone], ZONE_COLOR);
+        else GangZoneShowForPlayer(playerid, ZInfo[i][_Zone], ZInfo[i][Color]);
     }
 
-    new  Query[ 89 ],DBResult: Result;
-
-    format( Query, sizeof( Query ), "SELECT * FROM Members WHERE UserName = '%q' LIMIT 0, 1", GInfo[ playerid ][ username ] );
-
-    Result = db_query( Database, Query );
-
-    if( db_num_rows( Result ) )
-    {
-
-        db_get_field_assoc_int( Result, "GangMember");
-
-        db_get_field_assoc_int( Result, "GangLeader");
-
-        db_get_field_assoc(Result, "GangName", GInfo[playerid][gangname], 56);
-
-        GInfo[playerid][creatingzone] = false;
-
-        db_get_field_assoc_int( Result, "GangID");
-
-        
-
-        if(GInfo[playerid][gangmember] == 1)
-        {
-            new str[128];
-
-            SetTimerEx("GMoney",600000,true,"i",playerid);
-
-            if(GInfo[playerid][gangleader] == 1)
-            {
-
-                format(str,sizeof(str),""RED"[GANG INFO]"ORANGE"Leader"GREEN" %s "ORANGE"has Logged in!!",GInfo[playerid][username]);
-
-                SendGangMessage(playerid,str);
-            }
-
-            else if(GInfo[playerid][gangleader] == 0)
-            {
-
-                format(str,sizeof(str),""RED"[GANG INFO]"CYAN"Member"YELLOW" %s "ORANGE"has Logged in!!",GInfo[playerid][username]);
-
-                SendGangMessage(playerid,str);
-            }
-
-
-            new query[105],DBResult:result;
-
-            format(query,sizeof(query),"SELECT * FROM Gangs Where GangName = '%q' ",GInfo[playerid][gangname]);
-
-            result = db_query(Database,query);
-
-            if(db_num_rows(result))
-            {
-                db_get_field_assoc(result,"GangColor",query,10);
-
-                GInfo[playerid][gangcolor] = strval(query);
-
-                SetPlayerColor(playerid,GInfo[playerid][gangcolor]);
-
-                db_get_field_assoc(result, "GangTag", GInfo[playerid][gangtag], 4);
-
-                db_free_result( result );
-            }
-
-            db_free_result( Result );
-
-            SetTimerEx("FullyConnected",3000,false,"i",playerid);
-
-            return 1;
-
-        }
-
-        return 1;
-
-    }
-
-    else
-    {
-        new GQuery[107];
-
-        format( GQuery, sizeof( GQuery ), "INSERT INTO Members (UserName) VALUES ('%q')", GInfo[ playerid ][ username ] );
-
-        db_query( Database, GQuery );
-
-        return 1;
-    }
+    new query[120];
+    mysql_format(CONNECT_ID, query, sizeof(query), "SELECT GangLeader,GangID FROM Members WHERE UserName = '%e' LIMIT 0, 1", GInfo[playerid][username]);
+    mysql_tquery(CONNECT_ID, query, "OnMemberLoad", "i", playerid);
+    
+    GInfo[playerid][gang_index] = -1;
+    GInfo[playerid][in_zone] = -1;
+    GInfo[playerid][ganginvited] = -1;
+    return true;
 }
 
-
-
-public OnPlayerDisconnect(playerid,reason)
+forward OnMemberLoad(playerid);
+public OnMemberLoad(playerid)
 {
+    new str[128];
+    if(cache_num_rows())
+    {
+        new gang_id;
+        
+        cache_get_value_name_int(0, "GangLeader", GInfo[playerid][gangleader]);
+        cache_get_value_name_int(0, "GangID", gang_id);
+        
+        if (gang_id)
+        {
+            foreach(new i : Gangs)
+            {
+                if (Gang[i][gangid] == gang_id)
+                {
+                    GInfo[playerid][gang_index] = i;
+                    break;
+                }
+            }
 
-    SetPlayerName(playerid,GInfo[playerid][username]);//just to avoid some bugs
+            if(IsGangMember(playerid))
+            {
+                SetTimerEx("GMoney", 600000, true, "i", playerid);
 
+                if(GInfo[playerid][gangleader])
+                {
+                    format(str, sizeof(str), ""RED"[GANG INFO]"ORANGE"Leader"GREEN" %s "ORANGE"has Logged in!!", GInfo[playerid][username]);
+                    SendGangMessage(playerid, str);
+                }
+                else
+                {
+                    format(str, sizeof(str), ""RED"[GANG INFO]"CYAN"Member"YELLOW" %s "ORANGE"has Logged in!!", GInfo[playerid][username]);
+                    SendGangMessage(playerid, str);
+                }
+	            
+                SetPlayerColor(playerid, Gang[GInfo[playerid][gang_index]][gangcolor]);
+                SetTimerEx("FullyConnected", 3000, false, "i", playerid);
+            }
+        }
+    }
+    else
+    {
+        mysql_format(CONNECT_ID, str, sizeof(str), "INSERT INTO Members (UserName) VALUES ('%e')", GInfo[playerid][username]);
+        mysql_tquery(CONNECT_ID, str, "", "");
+    }
+    return true;
+}
+
+public OnPlayerDisconnect(playerid, reason)
+{
     if(GInfo[playerid][inwar])
     {
         GInfo[playerid][inwar] = false;
-        CheckVict(GInfo[playerid][gangname],"INVALID");
-
+        CheckVict(GInfo[playerid][gang_index], GInfo[playerid][gang_index] == GWar_Gang1 ? GWar_Gang2 : GWar_Gang1);
     }
-
-    if(GInfo[playerid][gangmember] == 1)
+    if(IsGangMember(playerid))
     {
         new str[128];
-
-        format(str,sizeof(str),""ORANGE"[GANGINFO]"RED" Member "CYAN"%s"RED" has Logged Out ",GInfo[playerid][username]);
-
-        SendGangMessage(playerid,str);
+        format(str, sizeof(str), ""ORANGE"[GANGINFO]"RED" Member "CYAN"%s"RED" has Logged Out ", GInfo[playerid][username]);
+        SendGangMessage(playerid, str);
     }
-
-    for( new i; i < _: G_USER_DATA; ++i ) GInfo[ playerid ][ G_USER_DATA: i ] = 0;
-
-    Iter_Remove(SS_Player,playerid);
-
-    return 1;
+    return true;
 }
-
-
 
 public OnPlayerText(playerid, text[])
 {
-    if(text[0] == '#' && GInfo[playerid][gangmember] == 1)
+    new str[144];
+    if(text[0] == '#' && IsGangMember(playerid))
     {
-
-        new str[128];
-       
-        format(str,sizeof(str),""RED"[GANG CHAT]"ORANGE" %s: "WHITE"%s",GInfo[playerid][username],text[1]);
-
-        SendGangMessage(playerid,str);
-
-        return 0;
+        format(str, sizeof(str), ""RED"[GANG CHAT]"ORANGE" %s: "WHITE"%s", GInfo[playerid][username],text[1]);
+        SendGangMessage(playerid, str);
     }
     else
     {
-
-        new pText[144];
-
-        format(pText, sizeof (pText), "(%d) %s", playerid, text);
-
+        format(str, sizeof(str), "(%d) %s", playerid, text);
         SetPlayerChatBubble(playerid, text, 0xFFFFFFFF, 100.0, 10000);
-
-        SendPlayerMessageToAll(playerid, pText);
-
-        return 0;
+        SendPlayerMessageToAll(playerid, str);
     }
-
+    return false;
 }
-
-
 
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
@@ -589,204 +510,145 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
     {
         case GANG_COLOR:
         {
+            new gang_id = GInfo[playerid][gang_index];
             if(response)
             {
                 switch(listitem)
                 {
                     case 0:
                     {
-                        GInfo[playerid][gangcolor] = G_BLUE;
-
-                        SetPlayerColor(playerid,G_BLUE);
-
+                        Gang[gang_id][gangcolor] = G_BLUE;
+                        SetPlayerColor(playerid, G_BLUE);
                     }
-
                     case 1:
                     {
-
-                        GInfo[playerid][gangcolor] = G_RED;
-
-                        SetPlayerColor(playerid,G_RED);
+                        Gang[gang_id][gangcolor] = G_RED;
+                        SetPlayerColor(playerid, G_RED);
                     }
-
                     case 2:
                     {
-
-                        GInfo[playerid][gangcolor] = G_WHITE;
-
-                        SetPlayerColor(playerid,G_WHITE);
+                        Gang[gang_id][gangcolor] = G_WHITE;
+                        SetPlayerColor(playerid, G_WHITE);
                     }
-
                     case 3:
                     {
-
-                        GInfo[playerid][gangcolor] = G_PINK;
-
-                        SetPlayerColor(playerid,G_PINK);
+                        Gang[gang_id][gangcolor] = G_PINK;
+                        SetPlayerColor(playerid, G_PINK);
                     }
-
                     case 4:
                     {
-
-                        GInfo[playerid][gangcolor] = G_CYAN;
-
-                        SetPlayerColor(playerid,G_CYAN);
+                        Gang[gang_id][gangcolor] = G_CYAN;
+                        SetPlayerColor(playerid, G_CYAN);
                     }
-
                     case 5:
                     {
-
-                        GInfo[playerid][gangcolor] = G_ORANGE;
-
-                        SetPlayerColor(playerid,G_ORANGE);
+                        Gang[gang_id][gangcolor] = G_ORANGE;
+                        SetPlayerColor(playerid, G_ORANGE);
                     }
-
                     case 6:
                     {
-
-                        GInfo[playerid][gangcolor] = G_GREEN;
-
-                        SetPlayerColor(playerid,G_GREEN);
+                        Gang[gang_id][gangcolor] = G_GREEN;
+                        SetPlayerColor(playerid, G_GREEN);
                     }
-
                     case 7:
                     {
-
-                        GInfo[playerid][gangcolor] = G_YELLOW;
-
-                        SetPlayerColor(playerid,G_YELLOW);
+                        Gang[gang_id][gangcolor] = G_YELLOW;
+                        SetPlayerColor(playerid, G_YELLOW);
                     }
-
                 }
             }
-
             else
             {
-                GInfo[playerid][gangcolor] = -1;
-
-                SetPlayerColor(playerid,-1);
-
+                Gang[gang_id][gangcolor] = -1;
+                SetPlayerColor(playerid, -1);
             }
-
-            new Query[116];
-
-            format(Query,sizeof(Query),"UPDATE Gangs SET GangColor = %d Where GangName = '%q'",GInfo[playerid][gangcolor],GInfo[playerid][gangname]);
-
-            db_query(Database,Query);
-
-            SendGangMessage(playerid,""RED"Leader"YELLOW" Has changed gang color");
-
-            return 1;
-
+            new query[144];
+            mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Gangs SET GangColor = %d WHERE GangID = %d", Gang[gang_id][gangcolor], Gang[gang_id][gangid]);
+            mysql_tquery(CONNECT_ID, query, "", "");
+            SendGangMessage(playerid, ""RED"Leader"YELLOW" has changed gang color");
         }
-
         case GCP:
         {
             if(response)
             {
                 switch(listitem)
                 {
-                    case 0:return cmd_gcp(playerid);
-
-                    case 1:return cmd_gcp(playerid);
-
-                    case 2:return cmd_gmembers(playerid);
-
-                    case 3:return cmd_top(playerid);
-
-                    case 4:return ShowPlayerDialog(playerid, GWAR, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Enemy Gang Name", ""GREY"Please enter the  name of enemy gang", "Start", "Cancel");
-
-                    case 5:return ShowPlayerDialog(playerid, GKICK, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Member Name", ""GREY"Please enter the  name or id Member to Kicked", "Kick", "Cancel");
-
-                    case 6:return ShowPlayerDialog(playerid, GTAG, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Gang Tag", ""GREY"Please enter the new tag for your Gang", "Set", "Cancel");
-
-                    case 7:return cmd_gangcolor(playerid);
-
-                    case 8:return ShowPlayerDialog(playerid, GLEADER, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Member Name or ID", ""GREY"Please enter the  name or id Member to Set as leader ", "Kick", "Cancel");
+                    case 0: return cmd_gcp(playerid);
+                    case 1: return cmd_gcp(playerid);
+                    case 2: cmd_gmembers(playerid);
+                    case 3: cmd_top(playerid);
+                    case 4: return ShowPlayerDialog(playerid, GWAR, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Enemy Gang Name", ""GREY"Please enter the  name of enemy gang", "Start", "Cancel");
+                    case 5: return ShowPlayerDialog(playerid, GKICK, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Member Name", ""GREY"Please enter the  name or id Member to Kicked", "Kick", "Cancel");
+                    case 6: return ShowPlayerDialog(playerid, GTAG, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Gang Tag", ""GREY"Please enter the new tag for your Gang", "Set", "Cancel");
+                    case 7: return cmd_gangcolor(playerid);
+                    case 8: return ShowPlayerDialog(playerid, GLEADER, DIALOG_STYLE_INPUT, ""ORANGE"SS Gang - Input Member Name or ID", ""GREY"Please enter the  name or id Member to Set as leader ", "Kick", "Cancel");
                 }
             }
-            return 1;
         }
-
-
-        case GWAR :
+        case GWAR:
         {
             if(response)
             {
-
-                return cmd_gwar(playerid,inputtext);
+                return cmd_gwar(playerid, inputtext);
             }
         }
-
         case GKICK:
         {
             if(response)
             {
-                return cmd_gkick(playerid,inputtext);
+                return cmd_gkick(playerid, inputtext);
             }
         }
-
         case GLEADER:
         {
             if(response)
             {
-                return cmd_setleader(playerid,inputtext);
+                return cmd_setleader(playerid, inputtext);
             }
         }
-
         case GTAG:
         {
             if(response)
             {
-                return cmd_gangtag(playerid,inputtext);
+                return cmd_gangtag(playerid, inputtext);
             }
         }
-
-
         case ZONECREATE:
         {
             if(response)
             {
-                new query[160];
+                new query[144];
+                mysql_format(CONNECT_ID, query, sizeof(query), "INSERT INTO Zones (Name, MinX, minY, MaxX, MaxY) VALUES ('%e', %f, %f, %f, %f)",
+                    inputtext, GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
+                mysql_tquery(CONNECT_ID, query, "", "");
 
-                format(query,sizeof query,"INSERT INTO Zones (Name,MinX,MinY,MaxX,MaxY) VALUES('%q','%f','%f','%f','%f')",inputtext,GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
+                new index = Iter_Free(Zones);
+                ZInfo[index][ZminX] = GInfo[playerid][minX];
+                ZInfo[index][ZminY] = GInfo[playerid][minY];
+                ZInfo[index][ZmaxX] = GInfo[playerid][maxX];
+                ZInfo[index][ZmaxY] = GInfo[playerid][maxY];
 
-                db_query(Database,query);
+                strcpy(ZInfo[index][Name], inputtext, 32);
+                ZInfo[index][Owner] = -1;
 
-                new var = Iter_Free(Zones);
+                ZInfo[index][locked] = false;
+                ZInfo[index][Owned] = false;
+                
+                ZInfo[index][Region] = CreateDynamicRectangle(GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
+        		Streamer_SetIntData(STREAMER_TYPE_AREA, ZInfo[index][Region], E_STREAMER_EXTRA_ID, MAX_GZONES + index);
 
-                ZInfo[var][ZminX] = GInfo[playerid][minX];
+                ZInfo[index][_Zone] = GangZoneCreate(GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
 
-                ZInfo[var][ZminY] = GInfo[playerid][minY];
-
-                ZInfo[var][ZmaxX] = GInfo[playerid][maxX];
-
-                ZInfo[var][ZmaxY] = GInfo[playerid][maxY];
-
-                format(ZInfo[var][Name],24,"%s",inputtext);
-
-                strcpy(ZInfo[var][Owner],"");
-
-                ZInfo[var][locked] = false;
-
-                ZInfo[var][Owned] = false;
-
-                ZInfo[var][Region]  = Area_AddBox(GInfo[playerid][minX],GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
-
-                ZInfo[var][_Zone] = GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
-
-                Iter_Add(Zones, var);
-
-                GangZoneShowForAll(ZInfo[var][_Zone],ZONE_COLOR);
+                Iter_Add(Zones, index);
+                GangZoneShowForAll(ZInfo[index][_Zone], ZONE_COLOR);
             }
         }
-
+        default: return false;
     }
-    return 1;
+    return true;
 }
 
-
-public OnPlayerDeath(playerid,killerid,reason)
+public OnPlayerDeath(playerid, killerid, reason)
 {
     SendDeathMessage(killerid, playerid, reason);
 
@@ -795,1188 +657,833 @@ public OnPlayerDeath(playerid,killerid,reason)
         if(GInfo[playerid][inwar])
         {
             GInfo[playerid][inwar] = false;
-
-            SetPlayerInterior(playerid,0);
-
-            CheckVict(GInfo[playerid][gangname],GInfo[killerid][gangname]);
+            SetPlayerInterior(playerid, 0);
+            CheckVict(GInfo[playerid][gang_index], GInfo[killerid][gang_index]);
         }
-
-        if(GInfo[playerid][gangmember] == 1)
+        
+        
+        if(IsGangMember(playerid))
         {
-            new rvg[300];
-
-            if(GInfo[killerid][gangmember] == 1)
+            new rvg[256];
+            if(IsGangMember(killerid))
             {
-                format(rvg,sizeof(rvg),""GREY"The member of your Gang "YELLOW"%s"GREY" has been killed by a Member "RED"(%s)"GREY" of Gang %s%s",GInfo[playerid][username],GInfo[killerid][username],IntToHex(GInfo[killerid][gangcolor]),GInfo[killerid][gangname]);
-
-                new Query[120];
-                 
-                format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+1  WHERE GangName = '%q'",GInfo[killerid][gangname]);
-
-                db_query(Database,Query);
+                new gang_id = GInfo[killerid][gang_index];
+	            
+                mysql_format(CONNECT_ID, rvg, sizeof(rvg), "UPDATE Gangs SET GangScore = GangScore + 1 WHERE GangID = %d", Gang[gang_id][gangid]);
+                mysql_tquery(CONNECT_ID, rvg, "", "");
+	            
+                format(rvg, sizeof(rvg), ""GREY"The member of your gang "YELLOW"%s"GREY" has been killed by a member "RED"(%s)"GREY" of gang %s%s", GInfo[playerid][username], GInfo[killerid][username], IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname]);
             }
-
             else
             {
-                format(rvg,sizeof(rvg),""GREY"The member of your Gang "RED"%s "GREY"has been killed by a Player Named "RED"%s ",GInfo[playerid][username],GInfo[killerid][username]);
+                format(rvg,sizeof(rvg), ""GREY"The member of your Gang "RED"%s "GREY"has been killed by a Player Named "RED"%s ", GInfo[playerid][username], GInfo[killerid][username]);
             }
-
-            SendGangMessage(playerid,rvg);
+            SendGangMessage(playerid, rvg);
         }
     }
-
     else
     {
-
         if(GInfo[playerid][inwar])
         {
             GInfo[playerid][inwar] = false;
-
-            CheckVict(GInfo[playerid][gangname],"INVALID");
+            CheckVict(GInfo[playerid][gang_index], GInfo[playerid][gang_index] == GWar_Gang1 ? GWar_Gang2 : GWar_Gang1);
         }
-
     }
-
-    return 1;
-
+    return true;
 }
 
-
-
-public OnPlayerUpdate(playerid) //By RyDer
+public OnPlayerUpdate(playerid) // By Ryder
 {
     if(GInfo[playerid][creatingzone])
     {
-        new keys,ud,lr;
-
-        GetPlayerKeys(playerid,keys,ud,lr);
-        
+        new keys, ud, lr;
+        GetPlayerKeys(playerid, keys, ud, lr);
 
         if(lr == KEY_LEFT)
         {
-
             GInfo[playerid][minX] -= 6.0;
-
             GangZoneDestroy(GInfo[playerid][tempzone]);
-
-            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
-
+            GInfo[playerid][tempzone] = GangZoneCreate(GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
             GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
-
         }
-        else
-        if(lr == KEY_RIGHT)
+        else if(lr == KEY_RIGHT)
         {
-
             GInfo[playerid][maxX] += 6.0;
-
             GangZoneDestroy(GInfo[playerid][tempzone]);
-
-            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
-
-            GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone],ZONE_COLOR);
-
+            GInfo[playerid][tempzone] = GangZoneCreate(GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
+            GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
         }
-
-        else
-        if(ud == KEY_UP)
+        else if(ud == KEY_UP)
         {
-
             GInfo[playerid][maxY] += 6.0;
-
             GangZoneDestroy(GInfo[playerid][tempzone]);
-
-            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
-
+            GInfo[playerid][tempzone] = GangZoneCreate(GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
             GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
-
         }
-
-        else
-        if(ud == KEY_DOWN)
+        else if(ud == KEY_DOWN)
         {
-
             GInfo[playerid][minY] -= 6.0;
-
             GangZoneDestroy(GInfo[playerid][tempzone]);
-
-            GInfo[playerid][tempzone] =  GangZoneCreate(GInfo[playerid][minX],GInfo[playerid][minY],GInfo[playerid][maxX],GInfo[playerid][maxY]);
-
+            GInfo[playerid][tempzone] = GangZoneCreate(GInfo[playerid][minX], GInfo[playerid][minY], GInfo[playerid][maxX], GInfo[playerid][maxY]);
             GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
-
         }
-
-
         else if(keys & KEY_WALK)
         {
-
             GInfo[playerid][creatingzone] = false;
-
-            TogglePlayerControllable(playerid,true);
-
-            ShowPlayerDialog(playerid,ZONECREATE,DIALOG_STYLE_INPUT,"Input Zone Name ","Input the name of this gang zone","Create","");
-
+            TogglePlayerControllable(playerid, true);
+            ShowPlayerDialog(playerid, ZONECREATE, DIALOG_STYLE_INPUT, "Input zone name", "Input the name of this gang zone", "Create", "");
             GangZoneDestroy(GInfo[playerid][tempzone]);
         }
     }
-    return 1;
-
+    return true;
 }
 
-public OnPlayerEnterArea(playerid, areaid)
+public OnPlayerEnterDynamicArea(playerid, areaid)
 {
-    foreach(new i : Zones)
+    new zone_id = Streamer_GetIntData(STREAMER_TYPE_AREA, areaid, E_STREAMER_EXTRA_ID) - MAX_GZONES;
+	
+    if (zone_id >= 0)
     {
-        if(areaid == ZInfo[i][Region])
+        GInfo[playerid][in_zone] = zone_id;
+	    
+        new str[128];
+        if(ZInfo[zone_id][Owner] == -1)
         {
-            new str[128];
-            
-            if(isnull(ZInfo[i][Owner]))
-            {
-
-            format(str,sizeof str,"~y~Zone_Info~n~~b~Name:_~r~%s~n~~b~Status:_~r~Un_Owned",ZInfo[i][Name]);
-
-            PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw],str);
-
-            }
-            else
-            {
-
-                format(str,sizeof str,"~y~Zone_Info_~n~~b~Name:_~r~%s~n~~b~Status:_~r~Owned-by_~g~%s",ZInfo[i][Name],ZInfo[i][Owner]);
-
-                PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw],str);
-
-            }
-
-            PlayerTextDrawShow(playerid,GInfo[playerid][TextDraw]);
-
-            return 1;
+            format(str, sizeof(str), "~y~Zone_Info~n~~b~Name:_~r~%s~n~~b~Status:_~r~Un_Owned", ZInfo[zone_id][Name]);
+            PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw], str);
         }
-
+        else
+        {
+            format(str, sizeof(str), "~y~Zone_Info_~n~~b~Name:_~r~%s~n~~b~Status:_~r~Owned-by_~g~%s", ZInfo[zone_id][Name], Gang[ZInfo[zone_id][Owner]][gangname]);
+            PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw], str);
+        }
+        PlayerTextDrawShow(playerid, GInfo[playerid][TextDraw]);
     }
-
-    return 1;
+    return true;
 }
 
-public OnPlayerLeaveArea(playerid, areaid)
+public OnPlayerLeaveDynamicArea(playerid, areaid)
 {
+    new zone_id = Streamer_GetIntData(STREAMER_TYPE_AREA, areaid, E_STREAMER_EXTRA_ID) - MAX_GZONES;
 
-
-    foreach(new i : Zones)
+    if (zone_id >= 0)
     {
-        if(areaid == ZInfo[i][Region])
+        GInfo[playerid][in_zone] = -1;
+	    
+        if(GInfo[playerid][Capturing])
         {
-            if(GInfo[playerid][Capturing])
-            {
-
-            new msg[200];
-
+            new msg[200], gang_id = GInfo[playerid][gang_index];
             GInfo[playerid][Capturing] = false;
+            format(msg, sizeof(msg), "%s%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone.It will be locked for %d minute(s)", IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname], ZInfo[zone_id][Name], ((ZONE_LOCK_TIME) / 60));
+            KillTimer(ZInfo[zone_id][timercap_main]);
+            PlayerTextDrawHide(playerid, GInfo[playerid][TimerTD]);
+            SendClientMessageToAll(-1, msg);
 
-            format(msg,sizeof msg,"%s%s "ORANGE" gang has failed in capturing "GREEN" %s "ORANGE"zone.It will be locked for %d minute(s)",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[i][Name],((ZONE_LOCK_TIME)/60));
-
-            KillTimer(ZInfo[i][timercap_main]);
-
-            PlayerTextDrawHide(playerid,GInfo[playerid][TimerTD]);
-
-            SendClientMessageToAll(-1,msg);
-
-            ZInfo[i][timer] = ZONE_LOCK_TIME;
-
-            ZInfo[i][locked] = true;
-
-            ZInfo[i][timer_main] = SetTimerEx("UnlockZone",1000,true,"i",i);
-            }
-
-            ZInfo[i][U_Attack] = false;
-
-            GangZoneStopFlashForAll(ZInfo[i][_Zone]);
-            
-            PlayerTextDrawHide(playerid, GInfo[playerid][TextDraw]);
-
+            ZInfo[zone_id][timer] = ZONE_LOCK_TIME;
+            ZInfo[zone_id][locked] = true;
+            ZInfo[zone_id][timer_main] = SetTimerEx("UnlockZone", 1000, true, "i", zone_id);
         }
+        ZInfo[zone_id][U_Attack] = false;
+        GangZoneStopFlashForAll(ZInfo[zone_id][_Zone]);
+        PlayerTextDrawHide(playerid, GInfo[playerid][TextDraw]);
     }
-
-    return 1;
+    return true;
 }
-
-
-
 
 //--------------------------------COMMANDS---------------------------------------------------------------------------------------------------------------------------
 
-
-
-CMD:creategang(playerid,params[])
+CMD:creategang(playerid, params[])
 {
-    new query[115],DBResult:result,string[128];
+    if (Iter_Count(Gangs) == MAX_GANGS)
+	    return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY"You are unable to create a gang, the limit was reached.");
+	    
+    if(IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are already in a gang. Use /lg to leave it.");
 
-    
-
-    if(GInfo[playerid][gangmember] == 1) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already in a Gang /lg to leave it");
-
-    if(GetPlayerScore(playerid) < MAX_SCORE )
+    if(GetPlayerScore(playerid) < MAX_SCORE)
     {
-
-    new str_[89];
-
-    format(str_,sizeof str_,""RED"ERROR:"GREY"You need atleast "GREEN"%d "GREY" score to create a gang!",MAX_SCORE);
-
-    return SendClientMessage(playerid,-1,str_);
-
+        new str_[85];
+        format(str_, sizeof(str_), ""RED"ERROR:"GREY" You need at least "GREEN"%d "GREY" score to create a gang.", MAX_SCORE);
+        return SendClientMessage(playerid, -1, str_);
     }
-    
+    if(isnull(params))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /creategang [gangname]");
 
-    if(isnull(params))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/creategang [GangName]");
-
-    if(!strcmp(params,"INVALID",true)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"Please choose another name for your gang");
-
-    format(query,sizeof(query),"SELECT GangName FROM Gangs WHERE GangName = '%q'",params);
-
-    result = db_query( Database, query );
-
-    if( db_num_rows( result ) )
-    {
-        db_free_result(result);
-
-        return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"That name exits");
-    }
-    db_free_result(result);
-
-    GInfo[playerid][gangmember] = 1;
-
-    format(GInfo[playerid][gangname], 32, params);
-
-    GInfo[playerid][gangleader] = 1;
-
-    ShowPlayerDialog(playerid,GANG_COLOR,DIALOG_STYLE_LIST,"Gang Color",""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow","OK","CANCEL");
-
-
-    new Query[217];
-
-    format(Query,sizeof(query),"UPDATE Members SET GangName = '%q' ,GangMember = 1,GangLeader = 1 WHERE UserName = '%q' ",params,GInfo[playerid][username]);
-
-    db_query( Database, Query );
-
-    new gquery[190];
-
-    format( gquery, sizeof( gquery ), "INSERT INTO Gangs (GangName,GangColor) VALUES ('%q','%q')", GInfo[ playerid ][ gangname ] ,GInfo[playerid][gangcolor]);
-
-    db_query(Database,gquery);
-
-    SendClientMessage(playerid,-1,""RED"[GANG INFO]:"GREY"You have sucessfully create a gang");
-
-    format(string,sizeof(string),""ORANGE"%s"GREY" has created a new gang named %s%s",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname]);
-
-    SendClientMessageToAll(-1,string);
-
-    return 1;
+    new query[100];
+    mysql_format(CONNECT_ID, query, sizeof(query), "INSERT IGNORE INTO Gangs (GangName) VALUES ('%e')", params);
+    mysql_tquery(CONNECT_ID, query, "OnGangCreate", "is", playerid, params);
+    return true;
 }
 
-CMD:lg(playerid,params[])
+forward OnGangCreate(playerid, params[]);
+public OnGangCreate(playerid, params[])
 {
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not in a gang ");
-
-    new  gname [32],lquery[155] ;
-
-    strcpy(gname,GInfo[playerid][gangname]) ;
-
-    if(GInfo[playerid][gangleader] == 1)
+    if(!cache_affected_rows()) SendClientMessage(playerid, -1, ""RED"ERROR:"GREY"That name exists");
+    else
     {
-        foreach(new i : SS_Player)
+        new gang_id = Iter_Free(Gangs);
+        
+        Gang[gang_id][gangid] = cache_insert_id();
+        
+        GInfo[playerid][gang_index] = gang_id;
+        GInfo[playerid][gangleader] = true;
+        strcpy(Gang[gang_id][gangname], params, 32);
+        
+        new query[150];
+        mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangID = %d, GangLeader = 1 WHERE UserName = '%e'", Gang[gang_id][gangid], GInfo[playerid][username]);
+        mysql_tquery(CONNECT_ID, query, "", "");
+
+        SendClientMessage(playerid, -1, ""RED"[GANG INFO]:"GREY" You have successfully created a gang.");
+        format(query, sizeof(query), ""ORANGE"%s"GREY" has created a new gang named {FFFFFF}%s", GInfo[playerid][username], params);
+        SendClientMessageToAll(-1, query);
+
+        ShowPlayerDialog(playerid, GANG_COLOR, DIALOG_STYLE_LIST, "Gang Color", ""BLUE"Blue\n"RED"Red\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow", "OK", "CANCEL");
+    }
+}
+
+CMD:lg(playerid, params[])
+{
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not in a gang");
+
+    new gname[32], query[144], gang_id = GInfo[playerid][gang_index];
+    strcpy(gname, Gang[gang_id][gangname]);
+	
+    if(GInfo[playerid][gangleader])
+    {
+        foreach(new i : Player)
         {
-            if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
+            if(gang_id == GInfo[i][gang_index])
             {
+                GInfo[playerid][gang_index] = -1;
 
-                GInfo[i][gangmember] = 0;
-
-                GInfo[i][gangname][0] = EOS;
-
-                if(GInfo[i][gangleader] == 1)
+                if(GInfo[i][gangleader])
                 {
-                    GInfo[playerid][gangleader] = 0;
+                    GInfo[playerid][gangleader] = false;
                 }
             }
         }
+        mysql_format(CONNECT_ID, query, sizeof(query), "DELETE FROM Gangs WHERE GangName = '%e'", gname);
+        mysql_tquery(CONNECT_ID, query, "", "");
 
-        new  Query[105];
+        mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangMember = 0, GangLeader = 0, GangName = NULL WHERE GangName = '%e'", gname);
+        mysql_tquery(CONNECT_ID, query, "", "");
 
-        format(Query,sizeof(Query),"DELETE FROM Gangs WHERE GangName = '%q'",gname);
-
-        db_query(Database,Query);
-
-        format(lquery,sizeof(lquery),"UPDATE Members SET GangMember = 0,GangLeader = 0,GangName = NULL WHERE GangName = '%q'",gname);
-
-        db_query(Database,lquery);
-
-        new str[128];
-
-        format(str,sizeof(str),""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
-
-        SetPlayerName(playerid,GInfo[playerid][username]);
-
-        return SendClientMessageToAll(-1,str);
+        format(query, sizeof(query), ""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed", GInfo[playerid][username], IntToHex(Gang[gang_id][gangcolor]), gname);
+        SetPlayerName(playerid, GInfo[playerid][username]);
+        return SendClientMessageToAll(-1, query);
     }
+    GInfo[playerid][gang_index] = -1;
+	
+    mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangMember = 0, GangLeader = 0, GangName = NULL WHERE UserName = '%e'", GInfo[playerid][username]);
+    mysql_tquery(CONNECT_ID, query, "", "");
 
-    GInfo[playerid][gangmember] = 0;
-
-    GInfo[playerid][gangname][0] = EOS;
-
-    new query[102];
-
-    format(query,sizeof(query),"UPDATE Members SET GangMember = 0,GangLeader = 0,GangName = NULL WHERE UserName = '%q'",GInfo[playerid][username]);
-
-    db_query(Database,query);
-
-    new ls[128];
-
-    format(ls,sizeof(ls),""RED"%s "GREY"has left Gang %s%s",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
-
-    SetPlayerName(playerid,GInfo[playerid][username]);
-    
-    SendClientMessageToAll(-1,ls);
-
-    return 1;
+    format(query, sizeof(query), ""RED"%s "GREY"has left Gang %s%s", GInfo[playerid][username], IntToHex(Gang[GInfo[playerid][gang_index]][gangcolor]), gname);
+    SetPlayerName(playerid, GInfo[playerid][username]);
+    SendClientMessageToAll(-1, query);
+    return true;
 }
 
-
-
-CMD:setleader(playerid,params[])
+CMD:setleader(playerid, params[])
 {
-    
-    
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
-    
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
-
-    new giveid,str[128],Query[256];
-    
-    if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/setleader playerid");
-   
-    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
-    
-    if(strcmp(GInfo[playerid][gangname],GInfo[giveid][gangname])) return SendClientMessage(playerid,-1,""RED"He is not in your gang!");
-
-    if(GInfo[giveid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"That guy is not in a gang!");
-
-    if(GInfo[giveid][gangleader] == 1) return SendClientMessage(playerid,-1,""RED"That guy is already leader in you gang!");
-
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"You are not in a gang.");
         
-    GInfo[giveid][gangleader] = 1;
-
-    format(str,sizeof(str),""YELLOW"%s"GREY" is promoted to Gang Leader of %s%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[giveid][gangname]);
-
-    SendClientMessageToAll(-1,str);
-
-    format(Query,sizeof(Query),"UPDATE Members SET GangLeader = 1 WHERE UserName = '%q' ",GInfo[giveid][username]);
-
-    db_query( Database, Query );
-
-    return 1;
-}
-
-CMD:demote(playerid,params[])
-{
-    
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
-
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that!");
-    
-    new giveid,str[128],Query[256];
-
-    if(sscanf(params,"u",giveid))return SendClientMessage(playerid,-1,""RED"Error:"GREY"/demote playerid");
-    
-    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
-    
-    if(strcmp(GInfo[playerid][gangname],GInfo[giveid][gangname])) return SendClientMessage(playerid,-1,""RED"He is not in your gang!");
-   
-    if(GInfo[giveid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"That guy is not in a gang!");
-
-    if(GInfo[giveid][gangleader] != 1) return SendClientMessage(playerid,-1,""RED"That guy is not the head of your gang!");
-
-
-    GInfo[giveid][gangleader] = 0;
-
-    format(str,sizeof(str),""YELLOW"%s"GREY" is demoted from Gang Leader postion of %s%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[giveid][gangname]);
-
-    SendClientMessageToAll(-1,str);
-
-    format(Query,sizeof(Query),"UPDATE Members SET GangLeader = 0 WHERE UserName = '%q' ",GInfo[giveid][username]);
-
-    db_query( Database, Query );
-
-    return 1;
-
-}
-
-CMD:ginvite(playerid,params[])
-{
-    if(GInfo[playerid][gangleader] == 0 ) return SendClientMessage(playerid,-1,""RED"You are not authorised to do that");
-    
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"You are not authorized to do that.");
+        
     new giveid;
+    if(sscanf(params, "u", giveid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /setleader [playerid]");
 
-    if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/ginvite playerid");
+    if(giveid == INVALID_PLAYER_ID)
+        return SendClientMessage(playerid, -1, ""RED"Invalid player.");
+        
+    if(!IsGangMember(giveid))
+        return SendClientMessage(playerid, -1, "That guy is not in a gang.");
+        
+    if(GInfo[playerid][gang_index] != GInfo[giveid][gang_index])
+        return SendClientMessage(playerid, -1, ""RED"He is not in your gang.");
 
-    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
+    if(GInfo[giveid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"That guy is already a leader in your gang.");
 
-    if(GInfo[giveid][gangmember] == 1) return SendClientMessage(playerid,-1,""RED"He is already in a gang");
+    GInfo[giveid][gangleader] = true;
 
-    GInfo[giveid][ganginvite] = true;
+    new str[128], gang_id = GInfo[playerid][gang_index];
+    format(str, sizeof(str), ""YELLOW"%s"GREY" is promoted to Gang Leader of %s%s", GInfo[giveid][username], IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname]);
+    SendClientMessageToAll(-1, str);
 
-    SendClientMessage(playerid,-1,""GREEN"Invitation send successfully");
+    mysql_format(CONNECT_ID, str, sizeof(str), "UPDATE Members SET GangLeader = 1 WHERE UserName = '%e'", GInfo[giveid][username]);
+    mysql_tquery(CONNECT_ID, str, "", "");
+    return true;
+}
 
-    SendClientMessage(giveid,-1,""GREEN"You have recieved a gang invitation /accept or /decline to accept or decline ");
+CMD:demote(playerid, params[])
+{
+	if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"You are not in a gang.");
 
-    GInfo[giveid][ginvitedname][0] = EOS;
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"You are not authorized to do that.");
 
-    strcpy(GInfo[giveid][ginvitedname], GInfo[playerid][gangname]);
+    new giveid;
+    if(sscanf(params, "u", giveid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /demote [playerid]");
 
-    return 1;
+    if(giveid == INVALID_PLAYER_ID)
+        return SendClientMessage(playerid, -1, ""RED"Invalid player.");
+        
+    if(!IsGangMember(giveid))
+        return SendClientMessage(playerid, -1, ""RED"That guy is not in a gang.");
+
+    if(GInfo[playerid][gang_index] != GInfo[giveid][gang_index])
+        return SendClientMessage(playerid, -1, ""RED"He is not in your gang.");
+        
+    if(!GInfo[giveid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"That guy is not head of your gang.");
+
+    GInfo[giveid][gangleader] = false;
+
+    new str[144], gang_id = GInfo[playerid][gang_index];
+    format(str, sizeof(str), ""YELLOW"%s"GREY" is demoted from Gang Leader postion of %s%s", GInfo[giveid][username], IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname]);
+    SendClientMessageToAll(-1, str);
+
+    mysql_format(CONNECT_ID, str, sizeof(str), "UPDATE Members SET GangLeader = 0 WHERE UserName = '%e'", GInfo[giveid][username]);
+    mysql_tquery(CONNECT_ID, str, "", "");
+    return true;
+}
+
+CMD:ginvite(playerid, params[])
+{
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"You are not authorized to do that.");
+
+    new giveid;
+    if(sscanf(params, "u", giveid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /ginvite [playerid]");
+        
+    if(giveid == INVALID_PLAYER_ID)
+        return SendClientMessage(playerid, -1, ""RED"Invalid player.");
+        
+    if(IsGangMember(giveid))
+        return SendClientMessage(playerid, -1, ""RED"He is already in a gang.");
+
+    GInfo[giveid][ganginvited] = GInfo[playerid][gang_index];
+
+    SendClientMessage(playerid, -1, ""GREEN"Invitation successfully sent.");
+    SendClientMessage(giveid, -1, ""GREEN"You have received a gang invitation /accept or /decline to accept or decline.");
+    return true;
 }
 
 CMD:top(playerid)
 {
-    new query[256];
-
-    new DBResult:result;
-
-    format(query,sizeof(query),"SELECT GangName,GangScore,GangColor FROM Gangs ORDER BY GangScore DESC limit 0,10");
-
-    result = db_query( Database, query );
-
-    new scores,name[30],string[512],color;
-
-    for (new a,b=db_num_rows(result); a != b; a++, db_next_row(result))
-    {
-        db_get_field_assoc(result, "GangName", name, sizeof(name));
-
-        scores = db_get_field_assoc_int(result, "GangScore");
-
-        color = db_get_field_assoc_int(result, "GangColor");
-
-        format(string,sizeof(string),"%s\n"WHITE"%d.)%s %s "CYAN" scores:"ORANGE" %i", string, a + 1, IntToHex(color),name, scores);
-    }
-
-    ShowPlayerDialog(playerid, GTOP, DIALOG_STYLE_MSGBOX, ""RED"Top GANGS ", string, "Close", "");
-
-    db_free_result(result);
-
-    return 1;
+    mysql_tquery(CONNECT_ID, "SELECT GangName, GangScore, GangColor FROM Gangs ORDER BY GangScore DESC limit 0, 10", "OnGangRankBoardLoad", "i", playerid);
+    return true;
 }
 
+forward OnGangRankBoardLoad(playerid);
+public OnGangRankBoardLoad(playerid)
+{
+    new rowCount = cache_num_rows(), i, db_Score, db_Name[30], db_Color, string[512];
+    for(i = 0; i < rowCount; ++i)
+    {
+        cache_get_value_name(i, "GangName", db_Name);
+        cache_get_value_name_int(i, "GangScore", db_Score);
+        cache_get_value_name_int(i, "GangColor", db_Color);
+        format(string, sizeof(string), "%s\n"WHITE"%d.)%s %s"CYAN "scores:"ORANGE" %i", string, i + 1, IntToHex(db_Color), db_Name, db_Score);
+    }
+    ShowPlayerDialog(playerid, GTOP, DIALOG_STYLE_MSGBOX, ""RED"Top Gangs", string, "Close", "");
+    return true;
+}
 
 CMD:gmembers(playerid)
 {
-    
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not a gang member.");
 
-    new Query[256],name[30],string[250];
-
-    new DBResult:result;
-
-    format(Query,sizeof(Query),"SELECT UserName FROM Members WHERE GangName = '%q'",GInfo[playerid][gangname]);
-
-    result = db_query(Database,Query);
-
-    for (new a,b= db_num_rows(result); a !=b; a++, db_next_row(result))
-    {
-
-        db_get_field_assoc(result, "UserName", name, sizeof(name));
-
-        format(string,sizeof(string),"%s\n"WHITE"%d.)"RED" %s ",string,a + 1,name);
-    }
-
-    ShowPlayerDialog(playerid, GMEMBERS, DIALOG_STYLE_MSGBOX, ""RED"GANG MEMBERS ", string, "Close", "");
-
-    db_free_result(result);
-
-    return 1;
+    new query[150];
+    mysql_format(CONNECT_ID, query, sizeof(query), "SELECT UserName FROM Members WHERE GangID = %d", Gang[GInfo[playerid][gang_index]][gangid]);
+    mysql_tquery(CONNECT_ID, query, "OnGangMembersLoad", "i", playerid);
+    return true;
 }
 
+forward OnGangMembersLoad(playerid);
+public OnGangMembersLoad(playerid)
+{
+    new rowCount = cache_num_rows(), i, name[30], string[512];
+    for(i = 0; i < rowCount; ++i)
+    {
+        cache_get_value_name(i, "UserName", name);
+        format(string, sizeof(string), "%s\n"WHITE"%d.)"RED"%s", string, i + 1, name);
+    }
+    ShowPlayerDialog(playerid, GMEMBERS, DIALOG_STYLE_MSGBOX, ""RED"GANG MEMBERS", string, "Close", "");
+    return true;
+}
 
 CMD:decline(playerid)
 {
-    if(GInfo[playerid][ganginvite] == false) return SendClientMessage(playerid,-1,""RED"You didnt recieve any invitations");
+    if(GInfo[playerid][ganginvited] == -1)
+        return SendClientMessage(playerid, -1, ""RED"You didn't receive any invitations.");
 
-    SendClientMessage(playerid,-1,"You declined the invitation");
-
-    GInfo[playerid][ganginvite] = false;
-
-    return 1;
+    SendClientMessage(playerid, -1, "You declined the invitation.");
+    GInfo[playerid][ganginvited] = -1;
+    return true;
 }
 
 CMD:accept(playerid)
 {
-    new Query[900];
+    if(GInfo[playerid][ganginvited] == -1)
+        return SendClientMessage(playerid, -1, ""RED"You didn't receive any invitations.");
 
-    if(GInfo[playerid][ganginvite] == false) return SendClientMessage(playerid,-1,""RED"You didnt recieve any invitations");
-
-    SendClientMessage(playerid,-1,""GREEN"You accepted invitation and you are now a gang member");
-
-    GInfo[playerid][gangmember] = 1;
-
-    GInfo[playerid][gangname][0] = EOS;
-
-    strcpy(GInfo[playerid][gangname],GInfo[playerid][ginvitedname]);
-
-    GInfo[playerid][ganginvite] = false;
-
-    format(Query,sizeof(Query),"UPDATE Members SET GangMember = 1,GangLeader = 0,GangName = '%q' WHERE UserName = '%q' ",GInfo[playerid][gangname],GInfo[playerid][username]);
-
-    db_query( Database, Query );
-
-    new query[880],DBResult:result;
-
-    format(query,sizeof(query),"SELECT * FROM Gangs Where GangName = '%q' ",GInfo[playerid][gangname]);
-
-    result = db_query(Database,query);
-
-    if(db_num_rows(result))
-    {
-        db_get_field_assoc(result,"GangColor",query,10);
-
-        GInfo[playerid][gangcolor] = strval(query);
-
-        SetPlayerColor(playerid,GInfo[playerid][gangcolor]);
-
-        db_free_result( result );
-    }
-
-    return 1;
-}
-
-CMD:gkick(playerid,params[])
-{
+    SendClientMessage(playerid, -1, ""GREEN"You accepted invitation and you are now a gang member.");
     
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+    new gang_id;
+    gang_id = GInfo[playerid][gang_index] = GInfo[playerid][ganginvited];
+    GInfo[playerid][ganginvited] = -1;
 
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to do it");
-
-    new Query[300],giveid,str[128];
-
-    if(sscanf(params,"u",giveid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"/gkick playerid");
-   
-    if(giveid == INVALID_PLAYER_ID) return SendClientMessage(playerid,-1,""RED"Invalid player!");
-
-    if(GInfo[giveid][gangleader] == 1) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You cant kick a group leader");
-
-    GInfo[giveid][gangmember] = 0;
-
-    format(Query,sizeof(Query),"UPDATE Members SET GangMember = 0,GangName = NULL WHERE UserName = '%q' ",GInfo[giveid][username]);
-
-    db_query( Database, Query );
-
-    format(str,sizeof(str),""YELLOW"%s"GREY" has Kicked from Gang %s%s "GREY"by GangLeader "BLUE"%s",GInfo[giveid][username],IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],GInfo[playerid][username]);
-
-    SendClientMessageToAll(-1,str);
-
-    return 1;
+    new query[200];
+    mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangID = %d WHERE UserName = '%e'", Gang[gang_id][gangid], GInfo[playerid][username]);
+    mysql_tquery(CONNECT_ID, query, "", "");
+    
+    SetPlayerColor(playerid, Gang[gang_id][gangcolor]);
+    return true;
 }
 
-CMD:gangtag(playerid,params[])
+CMD:gkick(playerid, params[])
 {
-    new newname[24],Query[245];
+	if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not a gang member.");
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not a Gang Member");
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not authorized to do it.");
+        
+    new giveid;
+    if(sscanf(params, "u", giveid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /gkick [playerid]");
 
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do it");
+    if(giveid == INVALID_PLAYER_ID)
+        return SendClientMessage(playerid, -1, ""RED"Invalid player.");
+        
+    if(GInfo[giveid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You can't kick a group leader.");
 
-    if(isnull(params)) return SendClientMessage(playerid,-1,""RED"Error:"GREY"/gangtag [new tag]");
+    new query[144], gang_id = GInfo[giveid][gang_index];
+    mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Members SET GangID = 0 WHERE UserName = '%e'", GInfo[giveid][username]);
+    mysql_tquery(CONNECT_ID, query, "", "");
 
-    if(strlen(params)>2) return SendClientMessage(playerid,-1,""RED"Error:"GREY"tag should between 1-2 size");
+    format(query,sizeof(query), ""YELLOW"%s"GREY" has Kicked from Gang %s%s "GREY"by GangLeader "BLUE"%s", GInfo[giveid][username], IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname], GInfo[playerid][username]);
+    SendClientMessageToAll(-1, query);
+    
+    GInfo[giveid][gang_index] = -1;
+    return true;
+}
 
-    format(Query,sizeof(Query),"UPDATE Gangs SET GangTag = '%q' WHERE GangName = '%q'",params,GInfo[playerid][gangname]);
+CMD:gangtag(playerid, params[])
+{
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"You are not a gang member.");
 
-    db_query(Database,Query);
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED" You are not authorized to do this.");
 
-    foreach(new i : SS_Player)
+    if(isnull(params))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY"/gangtag [newtag]");
+
+    if(strlen(params) > 2)
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" tag can only be up to 2 characters long.");
+
+    new query[120], gang_id = GInfo[playerid][gang_index];
+    mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Gangs SET GangTag = '%e' WHERE GangID = %d", params, Gang[gang_id][gangid]);
+    mysql_tquery(CONNECT_ID, query, "", "");
+
+    new newname[MAX_PLAYER_NAME + 1], i;
+    foreach(i : Player)
     {
-        if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
+        if(GInfo[i][gang_index] == gang_id)
         {
-
-           format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
-
-            SetPlayerName(i,newname);
-
-            SendClientMessage(i,-1,""RED"Leader "WHITE"Has Set New Tag For Gang");
+            format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
+            SetPlayerName(i, newname);
+            SendClientMessage(i, -1, ""RED"Leader "WHITE"has set new tag for gang.");
         }
     }
-
-    return 1;
+    return true;
 }
 
 CMD:gangcolor(playerid)
 {
-    ShowPlayerDialog(playerid,GANG_COLOR,DIALOG_STYLE_LIST,"Gang Color",""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow","OK","CANCEL");
-
-    return 1;
+    if(!GInfo[playerid][gangleader])
+	    return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not authorized to do this.");
+	    
+    ShowPlayerDialog(playerid, GANG_COLOR, DIALOG_STYLE_LIST, "Gang Color", ""BLUE"Blue\n"RED"Red\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow", "OK", "CANCEL");
+    return true;
 }
 
-CMD:gwar(playerid,params[])
+CMD:gwar(playerid, params[])
 {
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member!!");
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not a gang member.");
 
-    if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not Authorised to do that!!");
+    if(!GInfo[playerid][gangleader])
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not authorized to do this.");
 
-    if(ActiveWar == true) return SendClientMessage(playerid,-1,""RED"Error:"GREY"There is a War Going on now wait till it finishes");
+    if(ActiveWar)
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" There is a war going on right now. Wait till it's finished.");
 
-    new c1,tempid,p;
+    if(isnull(params))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" /gwar gangname");
 
-    if(isnull(params)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
-
-    if(!strcmp(params,"INVALID")) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not allowed to use that name!!");
-
-    foreach( p: SS_Player)
+    new EnemiesOnline;
+    
+    foreach(new i : Gangs)
     {
-        if(!strcmp(GInfo[p][gangname],params,true))
+        if (!strcmp(Gang[i][gangname], params, true))
         {
-            c1++;
-
-            tempid = p;
-           
+            GWar_Gang1 = i;
+            break;
         }
-
     }
     
-    if(c1 == 0)return SendClientMessage(playerid,-1,""RED"No members of that gang is online");
-
-    foreach(new i : SS_Player)
+    if (GWar_Gang1 == -1)
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" There isn't any gang with this name.");
+        
+    foreach(new i : Player)
     {
-        if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname]) || !strcmp(params,GInfo[i][gangname]))
+        if(GWar_Gang1 == GInfo[i][gang_index])
+        {
+            EnemiesOnline++;
+        }
+    }
+    if(EnemiesOnline == 0)
+        return SendClientMessage(playerid, -1, ""RED"There are no members of that gang online.");
+
+    GWar_Gang1 = -1;
+    GWar_Gang2 = GInfo[playerid][gang_index];
+    foreach(new i : Player)
+    {
+        if(GInfo[i][gang_index] == GWar_Gang1 || GInfo[i][gang_index] == GWar_Gang2)
         {
             GInfo[i][inwar] = true;
-            
-            new Random = random(sizeof(RandomSpawnsGW));
-
-            SetPlayerPos(i,RandomSpawnsGW[Random][0], RandomSpawnsGW[Random][1], RandomSpawnsGW[Random][2]);
-
-            SetPlayerInterior(i,1);
-
+            new ranIndex = random(sizeof(RandomSpawnsGW));
+            SetPlayerPos(i, RandomSpawnsGW[ranIndex][0], RandomSpawnsGW[ranIndex][1], RandomSpawnsGW[ranIndex][2]);
+            SetPlayerInterior(i, 1);
             ResetPlayerWeapons(i);
-
-            TogglePlayerControllable( i, false );
+            TogglePlayerControllable(i, false);
         }
     }
-
     ActiveWar = true;
-    
-    SetTimerEx("GangWar",10000,false,"ii",playerid,tempid);
+    SetTimerEx("GangWar", 10000, false, "ii", GWar_Gang1, GWar_Gang2);
 
-    new str[128];
-
-    format(str,sizeof(str),"%s%s"WHITE" has started a war against %s%s "WHITE"and will start in "YELLOW"10 seconds",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],IntToHex(GInfo[tempid][gangcolor]),params);
-
-    SendClientMessageToAll(-1,str);
-
-    return 1;
+    new str[144];
+    format(str, sizeof(str), "%s%s"WHITE" has started a war against %s%s "WHITE" and will start in "YELLOW"10 seconds.", IntToHex(Gang[GWar_Gang2][gangcolor]), Gang[GWar_Gang2][gangname], IntToHex(Gang[GWar_Gang1][gangcolor]), params);
+    SendClientMessageToAll(-1, str);
+    return true;
 }
 
 CMD:gcp(playerid)
 {
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not a gang member.");
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member!!");
-
-    new str[300],Query[80],DBResult:Result,GScore;
-
-    format(Query,sizeof(Query),"SELECT GangScore FROM Gangs WHERE GangName = '%q'",GInfo[playerid][gangname]);
-
-    if( db_num_rows( Result ) )
-    {
-        db_get_field_assoc( Result, "GangScore", Query,10 );
-
-        GScore = strval(Query);
-
-        db_free_result( Result );
-    }
-
-
-    format(str,sizeof(str),""RED"GangName\t:\t%s%s\n"PINK"GangScore\t:\t"GREEN"%d"WHITE"\nGangMembers\nTop Gangs\nGang War\nKick Member \nChange Tag \nChange Color\nSet Leader",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],GScore);
-
-    ShowPlayerDialog(playerid,GCP,DIALOG_STYLE_LIST,""RED"Gang Control Panel",str,"Ok","Cancel");
-
-    return 1;
+    new query[100], gang_id = GInfo[playerid][gang_index];
+    mysql_format(CONNECT_ID, query, sizeof(query), "SELECT GangScore FROM Gangs WHERE GangID = %d", Gang[gang_id][gangid]);
+    mysql_tquery(CONNECT_ID, query, "OnGangScoreLoad", "ii", playerid, gang_id);
+    return true;
 }
 
-CMD:createzone(playerid,params[])
+forward OnGangScoreLoad(playerid, gang_id);
+public OnGangScoreLoad(playerid, gang_id)
 {
-    if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to use that Command!!");
-
-    if(GInfo[playerid][creatingzone])return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are already creating one zone complete it using left alt key!!");
-
-    if(!GInfo[playerid][creatingzone])
+    new rowCount = cache_num_rows(), gangScore;
+    if(rowCount)
     {
-        new Float:tempz;
-
-        GetPlayerPos(playerid, GInfo[playerid][minX], GInfo[playerid][minY], tempz);
-
-        GetPlayerPos(playerid, GInfo[playerid][maxX], GInfo[playerid][maxY], tempz);
-
-        SendClientMessage(playerid,-1,"Use "YELLOW" Left,Right Forward and Backward "RED"keys to change size of zone");
-
-        SendClientMessage(playerid,-1,"Use "YELLOW"walk "RED"key to stop the process");
-        
-        GInfo[playerid][creatingzone] = true;
-
-        GInfo[playerid][tempzone] = -1;
-        
-        TogglePlayerControllable(playerid,false);
-        
-        return 1;
+        cache_get_value_name_int(0, "GangScore", gangScore);
     }
-    
-    
-    return 1;
+
+    new str[300];
+    format(str, sizeof(str), ""RED"GangName\t:\t%s%s\n"PINK"GangScore\t:\t"GREEN"%d"WHITE"\nGangMembers\nTop Gangs\nGang War\nKick Member \nChange Tag \nChange Color\nSet Leader", IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname], gangScore);
+    ShowPlayerDialog(playerid, GCP, DIALOG_STYLE_LIST, ""RED"Gang control panel", str, "Ok", "Cancel");
+    return true;
+}
+
+CMD:createzone(playerid, params[])
+{
+    if(!IsPlayerAdmin(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY "You are not authorized to use this command.");
+
+    if(GInfo[playerid][creatingzone])
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are already creating a zone. Complite it using the LEFT ALT key.");
+
+    new Float:tempZ;
+    GetPlayerPos(playerid, GInfo[playerid][minX], GInfo[playerid][minY], tempZ);
+    GetPlayerPos(playerid, GInfo[playerid][maxX], GInfo[playerid][maxY], tempZ);
+
+    SendClientMessage(playerid, -1, "Use "YELLOW" the left, right, forward and backward "RED"keys to change the size of this zone.");
+    SendClientMessage(playerid, -1, "Use "YELLOW" the walk "RED"key to stop the process.");
+    GInfo[playerid][creatingzone] = true;
+    GInfo[playerid][tempzone] = -1;
+    TogglePlayerControllable(playerid, false);
+    return true;
 }
 
 CMD:capture(playerid)
 {
+    if(!IsGangMember(playerid))
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You are not in any gang.");
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"[ERROR]:"GREY"You are not in any gang!");
+    new i = GInfo[playerid][in_zone];
+    if(i == -1)
+        return SendClientMessage(playerid, -1, ""RED"ERROR:"GREY" You should be in a gang zone to use this command.");
 
-    new bool:inzone = false,i;
-
-    foreach( i : Zones)
-    {
-
-        if(IsPlayerInArea(playerid, ZInfo[i][ZminX] ,ZInfo[i][ZminY],ZInfo[i][ZmaxX],ZInfo[i][ZmaxY]))
-        {
-            inzone = true;
-
-            break;
-        }
-    }
-
-    if(!inzone)return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"You should be in a gang zone to use this CMD!");
+    new str[150];
 
     if(ZInfo[i][locked])
     {
-        new str[100];
-
-        format(str,sizeof str,""GREY"This Zone is Locked comeback in "YELLOW"%d "GREY"seconds ",ZInfo[i][timer]);
-
-        return SendClientMessage(playerid,-1,str);
+        format(str, sizeof(str), ""GREY"This zone is locked. Come back in "YELLOW"%d "GREY"seconds.", ZInfo[i][timer]);
+        return SendClientMessage(playerid, -1, str);
     }
+    if(GInfo[playerid][Capturing])
+        return SendClientMessage(playerid, -1, ""RED"ERROR: "GREY"You are capturing this zone!");
 
-    if(GInfo[playerid][Capturing]) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"You are capturing this zone! ");
+    if(ZInfo[i][U_Attack])
+        return SendClientMessage(playerid, -1, ""RED"ERROR: "GREY"Another gang is already set an attack on this zone.");
 
-    if(ZInfo[i][U_Attack]) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Another gang is already set an atttack on  this zone!");
-
-    if(!strcmp(ZInfo[i][Owner],GInfo[playerid][gangname],true)&&!isnull(ZInfo[i][Owner])) return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Your Gang Own this Zone");
+    new gang_id = GInfo[playerid][gang_index];
+    if(gang_id == ZInfo[i][Owner])
+        return SendClientMessage(playerid, -1, ""RED"ERROR: "GREY"Your gang owns this zone already.");
 
     GangZoneFlashForAll(ZInfo[i][_Zone], 0xFF0000AA);
-
     GInfo[playerid][Capturing] = true;
-
     ZInfo[i][U_Attack] = true;
 
-    new string[150];
-
-    format(string,sizeof string,"%s%s"ORANGE" gang has started to capture "GREEN"%s "ORANGE"zone",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[i][Name]);
-
-    SendClientMessageToAll(-1,string);
-
+    format(str, sizeof(str), "%s%s"ORANGE" gang has started to capture"GREEN" %s"ORANGE" zone.", IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname], ZInfo[i][Name]);
+    SendClientMessageToAll(-1, str);
     ZInfo[i][timercap] = ZONE_CAPTURE_TIME;
-
     ZInfo[i][timercap_main] = SetTimerEx("CaptureZone", 1000, true, "ii", playerid, i);
-
-    return 1;
+    return true;
 }
 
 CMD:zones(playerid)
 {
-   new string[900];
-
-   foreach(new i : Zones)
-   {
-        if(isnull(ZInfo[i][Owner]))
-        format(string,sizeof string,"%s"GREEN"%d.)"RED"%s\n",string,(i+1),ZInfo[i][Name]);
-
+    new string[900], i;
+    foreach(i : Zones)
+    {
+        if(ZInfo[i][Owner] == -1)
+            format(string, sizeof(string), "%s"GREEN"%d.)"RED"%s\n", string, (i + 1), ZInfo[i][Name]);
         else
-        format(string,sizeof string,"%s"GREEN"%d.)"RED"%s"YELLOW" %s(%s)\n",string,(i+1),ZInfo[i][Name],IntToHex(ZInfo[i][Color]),ZInfo[i][Owner]);
-
-   }
-
-   ShowPlayerDialog(playerid,ZONES,DIALOG_STYLE_MSGBOX,""ORANGE"Zones"PINK"           Owned By",string,"Cancel","");
-
-   return 1;
+            format(string, sizeof(string), "%s"GREEN"%d.)"RED"%s"YELLOW" %s(%s)\n", string, (i + 1), ZInfo[i][Name], IntToHex(ZInfo[i][Color]), Gang[ZInfo[i][Owner]][gangname]);
+    }
+    ShowPlayerDialog(playerid, ZONES, DIALOG_STYLE_MSGBOX, ""ORANGE"Zones"PINK"           Owned By", string, "Cancel", "");
+    return true;
 }
 
 CMD:ghelp(playerid)
 {
     new string[1164];
-
-    strcat(string,""GREEN"\t/creategang\t\t"WHITE"-\t"ORANGE"To create a gang\n");
-
-    strcat(string,""GREEN"\t/gmembers\t"WHITE"-\t"ORANGE"To view all gangmembers\n");
-
-    strcat(string,""GREEN"\t/lg\t\t\t"WHITE"-\t"ORANGE"To leave the gang\n");
-
-    strcat(string,""GREEN"\t/accept\t\t\t"WHITE"-\t"ORANGE"To accept an invitation to a gang\n");
-
-    strcat(string,""GREEN"\t/decline\t\t"WHITE"-\t"ORANGE"To decline an invitation to a gang\n");
-
-    strcat(string,""GREEN"\t/top\t\t\t"WHITE"-\t"ORANGE"To view all top 10 gangs\n");
-
-    strcat(string,""GREEN"\t/gangcolor\t\t"WHITE"-\t"ORANGE"To change gangcolor\n");
-
-    strcat(string,""GREEN"\t/gkick\t\t\t"WHITE"-\t"ORANGE"To kick a gangmember\n");
-
-    strcat(string,""GREEN"\t/gwar\t\t\t"WHITE"-\t"ORANGE"To challenge other  gang for a war\n");
-
-    strcat(string,""GREEN"\t/gcp\t\t\t"WHITE"-\t"ORANGE"To view all gang control panel\n");
-
-    strcat(string,""GREEN"\t/capture\t\t"WHITE"-\t"ORANGE"To capture a  gangzone\n");
-
-    strcat(string,""GREEN"\t/zones\t\t\t"WHITE"-\t"ORANGE"To view all gangzones and their details\n");
-
-    strcat(string,""GREEN"\t/createzone\t\t"WHITE"-\t"ORANGE"To create a gangzone\n");
-
-    strcat(string,""GREEN"\t/gangtag\t\t"WHITE"-\t"ORANGE"To change gang tag\n");
-
-    strcat(string,""GREEN"\t/ginvite\t\t"WHITE"-\t"ORANGE"To invite other players to the gang\n");
-
-    strcat(string,""GREEN"\t/setleader\t\t"WHITE"-\t"ORANGE"To set a member as gangleader\n");
-
-    strcat(string,""GREEN"\t/demote\t\t"WHITE"-\t"ORANGE"To demote a member from gang leader position\n");
-
-    strcat(string,""GREEN"\t/ghelp\t\t\t"WHITE"-\t"ORANGE"To view this dialog");
-
-    ShowPlayerDialog(playerid,GHELP,DIALOG_STYLE_MSGBOX,""RED"SS GANG SYSTEM BY SREYAS",string,"OK","");
-
-    return 1;
-
+    strcat(string, ""GREEN"\t/creategang\t\t"WHITE"-\t"ORANGE"To create a gang\n");
+    strcat(string, ""GREEN"\t/gangmembers\t"WHITE"-\t"ORANGE"To view all gangmembers\n");
+    strcat(string, ""GREEN"\t/lg\t\t\t"WHITE"-\t"ORANGE"To leave the gang\n");
+    strcat(string, ""GREEN"\t/accept\t\t\t"WHITE"-\t"ORANGE"To accept an invitation to a gang\n");
+    strcat(string, ""GREEN"\t/decline\t\t"WHITE"-\t"ORANGE"To decline an invitation to a gang\n");
+    strcat(string, ""GREEN"\t/top\t\t\t"WHITE"-\t"ORANGE"To view all top 10 gangs\n");
+    strcat(string, ""GREEN"\t/gangcolor\t\t"WHITE"-\t"ORANGE"To change gangcolor\n");
+    strcat(string, ""GREEN"\t/gkick\t\t\t"WHITE"-\t"ORANGE"To kick a gangmember\n");
+    strcat(string, ""GREEN"\t/gwar\t\t\t"WHITE"-\t"ORANGE"To challenge other  gang for a war\n");
+    strcat(string, ""GREEN"\t/gcp\t\t\t"WHITE"-\t"ORANGE"To view all gang control panel\n");
+    strcat(string, ""GREEN"\t/capture\t\t"WHITE"-\t"ORANGE"To capture a  gangzone\n");
+    strcat(string, ""GREEN"\t/zones\t\t\t"WHITE"-\t"ORANGE"To view all gangzones and their details\n");
+    strcat(string, ""GREEN"\t/createzone\t\t"WHITE"-\t"ORANGE"To create a gangzone\n");
+    strcat(string, ""GREEN"\t/gangtag\t\t"WHITE"-\t"ORANGE"To change gang tag\n");
+    strcat(string, ""GREEN"\t/ginvite\t\t"WHITE"-\t"ORANGE"To invite other players to the gang\n");
+    strcat(string, ""GREEN"\t/setleader\t\t"WHITE"-\t"ORANGE"To set a member as gangleader\n");
+    strcat(string, ""GREEN"\t/demote\t\t"WHITE"-\t"ORANGE"To demote a member from gang leader position\n");
+    strcat(string, ""GREEN"\t/ghelp\t\t\t"WHITE"-\t"ORANGE"To view this dialog");
+    ShowPlayerDialog(playerid, GHELP, DIALOG_STYLE_MSGBOX, ""RED"SS GANG SYSTEM BY SREYAS", string, "OK", "");
+    return true;
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
 //-Custom Functions--------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-forward CaptureZone(playerid,zoneid);
-
-public CaptureZone(playerid,zoneid)
+forward CaptureZone(playerid, zoneid);
+public CaptureZone(playerid, zoneid)
 {
     ZInfo[zoneid][timercap]--;
-
     new str[34];
+    format(str, sizeof(str), "%02d-%02d", (ZInfo[zoneid][timercap] / 60), ZInfo[zoneid][timercap]);
+    PlayerTextDrawSetString(playerid, GInfo[playerid][TimerTD], str);
+    PlayerTextDrawShow(playerid, GInfo[playerid][TimerTD]);
 
-    format(str,sizeof str,"%02d-%02d",(ZInfo[zoneid][timercap]/60),ZInfo[zoneid][timercap]);
-    
-    PlayerTextDrawSetString(playerid, GInfo[playerid][TimerTD],str);
-
-    PlayerTextDrawShow(playerid,GInfo[playerid][TimerTD]);
-
-    if(ZInfo[zoneid][timercap]==0)
+    if(ZInfo[zoneid][timercap] == 0)
     {
+        new string[128], gang_id = GInfo[playerid][gang_index];
+        format(string, sizeof(string), ""RED"your gang zone is captured by"YELLOW" %s %sgang.", IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname]);
+        PlayerTextDrawHide(playerid, GInfo[playerid][TimerTD]);
 
-        new string[128];
-
-        format(string,sizeof string,""RED"Your Gang zone is captured by"YELLOW" %s %sgang ",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname]);
-        
-
-        PlayerTextDrawHide(playerid,GInfo[playerid][TimerTD]);
-
-        foreach(new i : SS_Player)
+        foreach(new i : Player)
         {
-            if(!strcmp(ZInfo[zoneid][Owner],GInfo[i][gangname]))
+            if(ZInfo[zoneid][Owner] == gang_id)
             {
-
-                SendClientMessage(i,-1,string);
-
+                SendClientMessage(i, -1, string);
             }
-
         }
-
         if(ZInfo[zoneid][U_Attack])
         {
-
+            new color = (Gang[gang_id][gangcolor] & ~0xFF) | 50;
+            
             GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
-
-            new color = (GInfo[playerid][gangcolor] & ~0xFF) | 50;
-           
             GangZoneShowForAll(ZInfo[zoneid][_Zone], color);
 
-            format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
-
+            ZInfo[zoneid][Owner] = gang_id;
             ZInfo[zoneid][locked] = true;
-     
-
             ZInfo[zoneid][Color] = color;
 
-            new Query_[300],msg[150];
+            new query[200];
+            mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Zones SET Owner = %i, Color = %i, WHERE Name = '%e'", Gang[gang_id][gangid], ZInfo[zoneid][Color], ZInfo[zoneid][Name]);
+            mysql_tquery(CONNECT_ID, query, "", "");
 
-            format(Query_,sizeof Query_,"UPDATE Zones SET Owner = '%q',Color = %i WHERE Name = '%q'",ZInfo[zoneid][Owner],ZInfo[zoneid][Color],ZInfo[zoneid][Name]);
-
-            db_query(Database,Query_);
-
-            format(msg,sizeof msg,"%s%s "ORANGE" gang has successfully captured"GREEN" %s "ORANGE"zone. It will be locked for "RED"%d "ORANGE"minute(s)",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[zoneid][Name],((ZONE_LOCK_TIME)/60));
-
-            SendClientMessageToAll(-1,msg);
+            format(query, sizeof(query), "%s%s "ORANGE" gang has successsfully captured"GREEN" %s "ORANGE"zone. It will be locked for "RED"%d "ORANGE"minute(s)", IntToHex(Gang[gang_id][gangcolor]), Gang[gang_id][gangname], ZInfo[zoneid][Name], ((ZONE_LOCK_TIME) / 60));
+            SendClientMessageToAll(-1, query);
 
             ZInfo[zoneid][timer] = ZONE_LOCK_TIME;
-
-            ZInfo[zoneid][timer_main] = SetTimerEx("UnlockZone",1000,true,"i",zoneid);
-
+            ZInfo[zoneid][timer_main] = SetTimerEx("UnlockZone", 1000, true, "i", zoneid);
             ZInfo[zoneid][U_Attack] = false;
-
             GInfo[playerid][Capturing] = false;
 
-        
-
-            new Query[180];
-
-            format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+10 WHERE GangName = '%q'",GInfo[playerid][gangname]);
-
-            db_query(Database,Query);
-
+            mysql_format(CONNECT_ID, query, sizeof(query), "UPDATE Gangs SET GangScore = GangScore + 10 WHERE GangID = '%e'", Gang[gang_id][gangid]);
+            mysql_tquery(CONNECT_ID, query, "", "");
         }
-
         KillTimer(ZInfo[zoneid][timercap_main]);
-
-     }
-
-    return 1;
+    }
+    return true;
 }
 
 forward UnlockZone(zoneid);
-
 public UnlockZone(zoneid)
 {
-
     ZInfo[zoneid][timer]--;
-
     if(ZInfo[zoneid][timer] == 0)
     {
-
         KillTimer(ZInfo[zoneid][timer_main]);
-
         ZInfo[zoneid][locked] = false;
-
     }
-
-    return 1;
+    return true;
 }
 
-
-
-forward GangWar(playerid,enemyid);
-
-public GangWar(playerid,enemyid)
+forward GangWar(gang1, gang2);
+public GangWar(gang1, gang2)
 {
-    
-    new count1,count2;
-    foreach(new i : SS_Player)
+    new count1, count2;
+    foreach(new i : Player)
     {
-        if(!strcmp(GInfo[playerid][gangname],GInfo[i][gangname]))
-        {
-            
-            GivePlayerWeapon(i,34,100);
+        if(gang1 == GInfo[i][gang_index]) count1++;
+        else if (gang2 == GInfo[i][gang_index]) count2++;
+        else continue;
 
-            SetPlayerHealth(i,100);
-
-            SetPlayerArmour(i,100);
-
-            TogglePlayerControllable( i, true );
-
-            GameTextForPlayer(i, "~w~War ~g~ Has~r~ Started", 5000, 5);
-
-            count1++;
-        }
-
-        if(!strcmp(GInfo[enemyid][gangname],GInfo[i][gangname]))
-        {
-            
-            GivePlayerWeapon(i,34,100);
-
-            SetPlayerHealth(i,100);
-
-            SetPlayerArmour(i,100);
-
-            TogglePlayerControllable( i, true );
-
-            GameTextForPlayer(i, "~w~War ~g~ Has~r~ Started", 5000, 5);
-
-            count2++;
-
-        }
+        GivePlayerWeapon(i, 34, 100);
+        SetPlayerHealth(i, 100);
+        SetPlayerArmour(i, 100);
+        TogglePlayerControllable(i, true);
+        GameTextForPlayer(i, "~w~War ~g~has ~r~started", 5000, 5);
     }
-
-    if(count1 ==0 || count2 ==0)
+    if(count1 == 0 || count2 == 0)
     {
-       
-        foreach(new i : SS_Player)
+        foreach(new i : Player)
         {
             if(GInfo[i][inwar] == true)
             {
-
                 GInfo[i][inwar] = false;
-
                 SpawnPlayer(i);
             }
         }
-
         ActiveWar = false;
-
-        return SendClientMessageToAll(-1,""RED "Gang war ended due to low participants");
+        GWar_Gang1 = -1;
+        GWar_Gang2 = -1;
+        SendClientMessageToAll(-1, ""RED"Gang war ended due to low participants.");
     }
-
-    return 1;
+    return true;
 }
-
 
 forward GMoney(playerid);
-
 public GMoney(playerid)
 {
-
-    GivePlayerMoney(playerid,100);
-
-    GameTextForPlayer(playerid,"~w~RECIEVED ~g~100$ ~w~FROM GANG HQ FOR YOUR SERVICE",5000,5);
-
-    return 1;
+    GivePlayerMoney(playerid, 100);
+    GameTextForPlayer(playerid, "~w~RECEIVED ~g~$100 ~w~FROM GANG HQ FOR YOUR SERVICE!", 5000, 5);
+    return true;
 }
-
-
 
 forward FullyConnect(playerid);
-
 public FullyConnect(playerid)
 {
-    if(!isnull(GInfo[playerid][gangtag]))
-    {
-
-        new newname[24];
-
-        format(newname,sizeof newname,"%s[%s]",GInfo[playerid][username],GInfo[playerid][gangtag]);
-
-        SetPlayerName(playerid,newname);
-
-        SetPlayerColor(playerid,GInfo[playerid][gangcolor]);
-    }
-
-    return 1;
-
+    new newname[MAX_PLAYER_NAME];
+    format(newname, sizeof(newname), "%s[%s]", GInfo[playerid][username], Gang[GInfo[playerid][gang_index]][gangtag]);
+    SetPlayerName(playerid, newname);
+    return true;
 }
 
-SendGangMessage(playerid,Message[])
+SendGangMessage(playerid, message[])
 {
-    foreach(new i : SS_Player)
+    foreach(new i : Player)
     {
-        if(!strcmp(GInfo[playerid][gangname],GInfo[i][gangname],false)&& !isnull(GInfo[i][gangname]))
+        if(GInfo[playerid][gang_index] == GInfo[i][gang_index])
         {
-            SendClientMessage(i,-1,Message);
+            SendClientMessage(i, -1, message);
         }
     }
-    return 0;
+    return false;
 }
 
-
-IsPlayerInArea(playerid, Float:MinX, Float:MinY, Float:MaxX, Float:MaxY)
+CheckVict(gang1, gang2)
 {
-    new Float:X, Float:Y, Float:Z;
-
-    GetPlayerPos(playerid, X, Y, Z);
-
-    if(X >= MinX && X <= MaxX && Y >= MinY && Y <= MaxY) {
-        return 1;
-    }
-
-    return 0;
-}
-
-
-CheckVict(gname1[],gname2[])
-{
-    new count1,count2,pid,eid;
-  
-    foreach(new i : SS_Player)
+    new count1, count2;
+    foreach(new i : Player)
     {
-        if(GInfo[i][inwar] == true)
+        if(GInfo[i][inwar])
         {
-            if(!strcmp(gname1,GInfo[i][gangname]) || !strcmp(gname1,"INVALID"))
+            if(gang1 == GInfo[i][gang_index])
             {
-                pid = i;
-                
                 count1++;
             }
-
-            if(!strcmp(gname2,GInfo[i][gangname]) || !strcmp(gname2,"INVALID"))
+            else if(gang2 == GInfo[i][gang_index])
             {
-                eid = i;
-                
                 count2++;
             }
         }
     }
-
-    if(count1 ==0 || count2 ==0)
+    if(count1 == 0 || count2 == 0)
     {
-        new winner[32];
-        
-        foreach(new i : SS_Player)
+        foreach(new i : Player)
         {
             if(GInfo[i][inwar])
             {
-                
                 GInfo[i][inwar] = false;
-
-                SetPlayerInterior(i,0);
-
+                SetPlayerInterior(i, 0);
                 SpawnPlayer(i);
             }
         }
-
-        new str[128];
-
+        new str[128], winner = !count1 ? gang2 : gang1, looser = !count2 ? gang2 : gang1;
         
+        format(str, sizeof(str), "%s%s "WHITE"has won the war against %s%s", IntToHex(Gang[winner][gangcolor]), Gang[winner][gangname], IntToHex(Gang[looser][gangcolor]), Gang[looser][gangname]);
+        SendClientMessageToAll(-1, str);
+        ActiveWar = false;
+        GWar_Gang1 = -1;
+        GWar_Gang1 = -2;
 
-        if(count1 == 0)
-        {
-            
-            format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[eid][gangcolor]),GInfo[eid][gangname],IntToHex(GInfo[pid][gangcolor]),GInfo[pid][gangname]);
-
-            SendClientMessageToAll(-1,str);
-
-            ActiveWar = false;
-            
-            format(winner,sizeof winner,"%s",gname2);
-        }
-
-        else if(count2 == 0)
-        {
-
-            
-            
-            format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[pid][gangcolor]),GInfo[pid][gangname],IntToHex(GInfo[eid][gangcolor]),GInfo[eid][gangname]);
-
-            SendClientMessageToAll(-1,str);
-
-            ActiveWar = false;
-            
-            format(winner,sizeof winner,"%s",gname1);
-        }
-
-
-        new Query[180];
-             
-        format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+5 WHERE GangName = '%q'",winner);
-
-        db_query(Database,Query);
+        mysql_format(CONNECT_ID, str, sizeof(str), "UPDATE Gangs SET GangScore = GangScore + 5 WHERE GangID = %d", Gang[winner][gangid]);
+        mysql_tquery(CONNECT_ID, str, "", "");
     }
-    return 1;
+    return true;
 }
-
 
 IntToHex(var)
 {
-    new hex[10];
-
-    format(hex,sizeof hex,"{%06x}", var >>> 8);
-
+    new hex[9];
+    format(hex, sizeof(hex), "{%06x}", var >>> 8);
     return hex;
 }
 
+IsGangMember(playerid)
+{
+	return GInfo[playerid][gang_index] != -1;
+}
