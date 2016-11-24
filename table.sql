@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `Gangs` (
 
 	`GangID`		INT(24)			AUTO_INCREMENT,
-	`GangName`		VARCHAR(24)		NOT NULL,
+	`GangName`		VARCHAR(24)		NOT NULL UNIQUE,
 	`GangColor`		INT(24)			NOT NULL,
 	`GangTag`		VARCHAR(4)		NOT NULL,
 	`GangScore`		INT(24)			NOT NULL 			DEFAULT '0',
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `Gangs` (
 CREATE TABLE IF NOT EXISTS `Zones` (
 
 	`ID`			INT(24)			AUTO_INCREMENT,
-	`Name`			VARCHAR(32)		NOT NULL,
+	`Name`			VARCHAR(32)		NOT NULL UNIQUE,
 	`MinX`			FLOAT(24)		NOT NULL,
 	`MinY`			FLOAT(24)		NOT NULL,
 	`MaxX`			FLOAT(24)		NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `Members` (
 	`UserName`		VARCHAR(24)		NOT NULL,
 	`GangMember`	TINYINT(1)		NOT NULL			DEFAULT '0',
 	`GangLeader`	TINYINT(1)		NOT NULL			DEFAULT '0',
-	`GangName`		VARCHAR(24)		NOT NULL,
+	`GangName`		VARCHAR(24)		NOT NULL UNIQUE,
 
 	PRIMARY KEY(`UserID`),
 	UNIQUE KEY `UserName` (`UserName`)
