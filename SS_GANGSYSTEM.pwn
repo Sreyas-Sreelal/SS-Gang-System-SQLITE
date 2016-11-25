@@ -1662,7 +1662,7 @@ CMD:backup(playerid)
     foreach (new p: SS_Player)
     {
         // Is gangemate
-        if (!strcmp(GInfo[playerid][gangname],GInfo[p][gangname])) continue;
+        if (strcmp(GInfo[playerid][gangname],GInfo[p][gangname]) != 0) continue;
 
         new str[128]; format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!");
         SendGangMessage(playerid, str);
