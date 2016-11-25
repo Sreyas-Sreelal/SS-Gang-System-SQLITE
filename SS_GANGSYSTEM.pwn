@@ -1667,6 +1667,10 @@ CMD:backup(playerid)
         SendGangMessage(playerid, str);
     }
 };
+
+// Alt command
+CMD:requestbackup(playerid) return cmd_backup(playerid);
+
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
