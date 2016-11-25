@@ -1970,6 +1970,11 @@ CheckVict(gname1[],gname2[])
     return 1;
 }
 
+IsPlayerInAnyGang(playerid)
+{
+    if (GInfo[playerid][gangmember]) return;
+    return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+}
 
 IntToHex(var)
 {
