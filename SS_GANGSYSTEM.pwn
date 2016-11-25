@@ -1229,7 +1229,7 @@ CMD:capture(playerid)
     if(!strcmp(ZInfo[i][Owner], GInfo[playerid][gangname], true) && !isnull(ZInfo[i][Owner]))
         return SendClientMessage(playerid, -1, ""RED"ERROR: "GREY"Your gang owns this zone already.");
 
-    GangZoneFlashForAll(ZInfo[i][_Zone], FF0000AA);
+    GangZoneFlashForAll(ZInfo[i][_Zone], 0xFF0000AA);
     GInfo[playerid][Capturing] = true;
     ZInfo[i][U_Attack] = true;
 
