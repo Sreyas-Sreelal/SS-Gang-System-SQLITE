@@ -1970,6 +1970,12 @@ CheckVict(gname1[],gname2[])
     return 1;
 }
 
+/**
+* @method IsPlayerInAnyGang
+* @desc Check if player is a gangmember, if not, send error message
+*
+* @param playerid {Number}
+*/
 IsPlayerInAnyGang(playerid)
 {
     if (GInfo[playerid][gangmember]) return;
