@@ -1659,7 +1659,7 @@ CMD:backup(playerid)
     // Is a gang member
     if (!CheckGangMembership(playerid)) return 1;
 
-    new str[128]; format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!");
+    new str[128]; format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!", GInfo[playerid][username], playerid);
     SendGangMessage(playerid, str);
 };
 
