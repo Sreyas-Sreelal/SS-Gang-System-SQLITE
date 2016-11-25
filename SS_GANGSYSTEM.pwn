@@ -32,6 +32,7 @@
                                       |   /creategang - to create new gang                             |
                                       |   /gangtag    - to add tag to your gang                        |
                                       |   /gwar       - to challenge other gang members for a gang war |
+                                      |   /backup     - to request backup                              |
                                       |   /gkick      - to kick a member from gang                     |
                                       |   /setleader  - to set a member to leader                      |
                                       |   /gmembers   - to see whole members of gang                   |
