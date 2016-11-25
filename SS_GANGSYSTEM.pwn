@@ -1647,6 +1647,22 @@ CMD:ghelp(playerid)
 
 }
 
+CMD:backup(playerid)
+{
+    // Is a gang member
+    if (!IsPlayerInAnyGang(playerid)) return 1;
+
+    foreach (new p: SS_Player)
+    {
+        // Is gangemate
+        if (!strcmp(GInfo[playerid][gangname],GInfo[p][gangname])) continue;
+
+        new str[128];
+        format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!");
+
+        SendGangMessage(playerid, str);
+    }
+};
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
