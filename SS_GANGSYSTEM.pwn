@@ -1650,6 +1650,8 @@ CMD:ghelp(playerid)
 /**
 * @method backup
 * @desc Calls all gang members for backup
+*
+* @param playerid {Number}
 */
 CMD:backup(playerid)
 {
@@ -1661,9 +1663,7 @@ CMD:backup(playerid)
         // Is gangemate
         if (!strcmp(GInfo[playerid][gangname],GInfo[p][gangname])) continue;
 
-        new str[128];
-        format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!");
-
+        new str[128]; format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!");
         SendGangMessage(playerid, str);
     }
 };
