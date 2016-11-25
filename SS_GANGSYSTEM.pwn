@@ -1647,6 +1647,10 @@ CMD:ghelp(playerid)
 
 }
 
+/**
+* @method backup
+* @desc Calls all gang members for backup
+*/
 CMD:backup(playerid)
 {
     // Is a gang member
