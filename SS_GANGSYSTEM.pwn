@@ -1269,7 +1269,7 @@ CMD:top(playerid)
 CMD:gmembers(playerid)
 {
     
-    if (!IsPlayerInAnyGang(playerid)) return 1;
+    if (!CheckGangMembership(playerid)) return 1;
 
     new Query[256],name[30],string[250];
 
@@ -1349,7 +1349,7 @@ CMD:accept(playerid)
 CMD:gkick(playerid,params[])
 {
     
-    if (!IsPlayerInAnyGang(playerid)) return 1;
+    if (!CheckGangMembership(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to do it");
 
@@ -1378,7 +1378,7 @@ CMD:gangtag(playerid,params[])
 {
     new newname[24],Query[245];
 
-    if (!IsPlayerInAnyGang(playerid)) return 1;
+    if (!CheckGangMembership(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do it");
 
@@ -1415,7 +1415,7 @@ CMD:gangcolor(playerid)
 
 CMD:gwar(playerid,params[])
 {
-    if (!IsPlayerInAnyGang(playerid)) return 1;
+    if (!CheckGangMembership(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not Authorised to do that!!");
 
@@ -1475,7 +1475,7 @@ CMD:gwar(playerid,params[])
 CMD:gcp(playerid)
 {
 
-    if (!IsPlayerInAnyGang(playerid)) return 1;
+    if (!CheckGangMembership(playerid)) return 1;
 
     new str[300],Query[80],DBResult:Result,GScore;
 
@@ -1657,7 +1657,7 @@ CMD:ghelp(playerid)
 CMD:backup(playerid)
 {
     // Is a gang member
-    if (!IsPlayerInAnyGang(playerid)) return 1;
+    if (!CheckGangMembership(playerid)) return 1;
 
     foreach (new p: SS_Player)
     {
@@ -1996,12 +1996,12 @@ CheckVict(gname1[],gname2[])
 }
 
 /**
-* @method IsPlayerInAnyGang
+* @method CheckGangMembership
 * @desc Check if player is a gangmember, if not, send error message
 *
 * @param playerid {Number}
 */
-IsPlayerInAnyGang(playerid)
+CheckGangMembership(playerid)
 {
     if (GInfo[playerid][gangmember]) return;
     return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
