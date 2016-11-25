@@ -1268,7 +1268,7 @@ CMD:top(playerid)
 CMD:gmembers(playerid)
 {
     
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+    if (!IsPlayerInAnyGang(playerid)) return 1;
 
     new Query[256],name[30],string[250];
 
@@ -1348,7 +1348,7 @@ CMD:accept(playerid)
 CMD:gkick(playerid,params[])
 {
     
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+    if (!IsPlayerInAnyGang(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to do it");
 
@@ -1377,7 +1377,7 @@ CMD:gangtag(playerid,params[])
 {
     new newname[24],Query[245];
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not a Gang Member");
+    if (!IsPlayerInAnyGang(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do it");
 
@@ -1414,7 +1414,7 @@ CMD:gangcolor(playerid)
 
 CMD:gwar(playerid,params[])
 {
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member!!");
+    if (!IsPlayerInAnyGang(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not Authorised to do that!!");
 
@@ -1474,7 +1474,7 @@ CMD:gwar(playerid,params[])
 CMD:gcp(playerid)
 {
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member!!");
+    if (!IsPlayerInAnyGang(playerid)) return 1;
 
     new str[300],Query[80],DBResult:Result,GScore;
 
