@@ -1995,7 +1995,7 @@ CheckVict(gname1[],gname2[])
 *
 * @param playerid {Number}
 */
-bool:CheckGangMembership(playerid)
+CheckGangMembership(playerid)
 {
     if (GInfo[playerid][gangmember]) return true;
     return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
