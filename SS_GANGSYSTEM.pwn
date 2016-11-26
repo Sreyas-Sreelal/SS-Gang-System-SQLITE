@@ -32,6 +32,7 @@
                                       |   /creategang - to create new gang                             |
                                       |   /gangtag    - to add tag to your gang                        |
                                       |   /gwar       - to challenge other gang members for a gang war |
+                                      |   /backup     - to request backup                              |
                                       |   /gkick      - to kick a member from gang                     |
                                       |   /setleader  - to set a member to leader                      |
                                       |   /gmembers   - to see whole members of gang                   |
@@ -1268,7 +1269,7 @@ CMD:top(playerid)
 CMD:gmembers(playerid)
 {
     
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+    if (!CheckGangMembership(playerid)) return 1;
 
     new Query[256],name[30],string[250];
 
@@ -1348,7 +1349,7 @@ CMD:accept(playerid)
 CMD:gkick(playerid,params[])
 {
     
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+    if (!CheckGangMembership(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to do it");
 
@@ -1377,7 +1378,7 @@ CMD:gangtag(playerid,params[])
 {
     new newname[24],Query[245];
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not a Gang Member");
+    if (!CheckGangMembership(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"You are not authorised to do it");
 
@@ -1414,7 +1415,7 @@ CMD:gangcolor(playerid)
 
 CMD:gwar(playerid,params[])
 {
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member!!");
+    if (!CheckGangMembership(playerid)) return 1;
 
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not Authorised to do that!!");
 
@@ -1474,7 +1475,7 @@ CMD:gwar(playerid,params[])
 CMD:gcp(playerid)
 {
 
-    if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member!!");
+    if (!CheckGangMembership(playerid)) return 1;
 
     new str[300],Query[80],DBResult:Result,GScore;
 
@@ -1646,6 +1647,24 @@ CMD:ghelp(playerid)
     return 1;
 
 }
+
+/**
+* @method backup
+* @desc Calls all gang members for backup
+*
+* @param playerid {Number}
+*/
+CMD:backup(playerid)
+{
+    // Is a gang member
+    if (!CheckGangMembership(playerid)) return 1;
+
+    new str[128]; format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!", GInfo[playerid][username], playerid);
+    SendGangMessage(playerid, str);
+};
+
+// Alt command
+CMD:requestbackup(playerid) return cmd_backup(playerid);
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1970,6 +1989,17 @@ CheckVict(gname1[],gname2[])
     return 1;
 }
 
+/**
+* @method CheckGangMembership
+* @desc Check if player is a gangmember, if not, send error message
+*
+* @param playerid {Number}
+*/
+bool:CheckGangMembership(playerid)
+{
+    if (GInfo[playerid][gangmember]) return true;
+    return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not a Gang Member");
+}
 
 IntToHex(var)
 {
