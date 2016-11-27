@@ -62,10 +62,6 @@
                                       |----------------------------------------------------------------|
 */
 
-
-#define FILTERSCRIPT
-
-
 #include <a_samp> //SA - MP TEAM
 
 #include <zcmd> //ZEEX
@@ -74,9 +70,11 @@
 
 #include <YSI\y_iterate> //Y LESS
 
-#include <YSI\y_areas>
+#include <YSI\y_areas> //Y LESS
 
-#include <a_mysql>
+#include <a_mysql> // BLUEG
+
+#include <dini> // DRACO BLUE
 
 //-----Dialogs--------------
 enum {
@@ -96,13 +94,6 @@ enum {
 
 
 //--------------Custom Defines-----------------------------------------------------------
-
-#define CONNECT_ID          handle_id       // This is the name of your connection variable for the database
-
-#define MYSQL_HOST          "host_unknown"  // Database IP
-#define MYSQL_USER          "user_unknown"  // Database user
-#define MYSQL_PASS          ""  // Database password
-#define MYSQL_DATA          "table_unknown" // Database name
 
 #define MAX_GANGS           50
 
@@ -269,15 +260,21 @@ enum Zone_Data
 }
 static ZInfo[MAX_GZONES][Zone_Data];
 
+
 public OnFilterScriptInit()
 {
+    if(!dini_Exists("MySQLConfig.ini"))
+    {
+         print("Please Check MySQLConfig.ini in your scriptfiles before start the server");
+         SendRconCommand("exit");
+    }
     print("-------------------------------------------------------");
     print("---SS_Gang---SQLITE----system---by---Sreyas---Loaded---");
     print("------Converted---to---MySQL---by---Andy---Sedeyn------");
     print("-------------------------------------------------------");
 
     mysql_log(ALL);
-    CONNECT_ID = mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DATA);
+    CONNECT_ID = mysql_connect(dini_Get("MySQLConfig.ini", "MYSQL_HOST"), dini_Get("MySQLConfig.ini", "MYSQL_USER"), dini_Get("MySQLConfig.ini", "MYSQL_PASS"), dini_Get("MySQLConfig.ini", "MYSQL_DATA"));
 
     if(mysql_errno() != 0)
     {
