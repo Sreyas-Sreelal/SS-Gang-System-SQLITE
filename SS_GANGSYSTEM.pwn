@@ -447,15 +447,15 @@ public OnPlayerConnect(playerid)
     if( db_num_rows( Result ) )
     {
 
-        db_get_field_assoc_int( Result, "GangMember");
+        GInfo[playerid][gangmember] =  db_get_field_assoc_int( Result, "GangMember");
 
-        db_get_field_assoc_int( Result, "GangLeader");
+        GInfo[playerid][gangleader] = db_get_field_assoc_int( Result, "GangLeader");
 
         db_get_field_assoc(Result, "GangName", GInfo[playerid][gangname], 56);
 
         GInfo[playerid][creatingzone] = false;
 
-        db_get_field_assoc_int( Result, "GangID");
+        GInfo[playerid][gangid] = db_get_field_assoc_int( Result, "GangID");
 
         
 
@@ -512,7 +512,7 @@ public OnPlayerConnect(playerid)
         return 1;
 
     }
-
+///NOT ADDED
     else
     {
         new GQuery[107];
@@ -1399,11 +1399,10 @@ CMD:gangtag(playerid,params[])
         if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
         {
 
-           format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
+          format(newname, sizeof(newname), "%s[%s]", GInfo[i][username], params);
 
-            SetPlayerName(i,newname);
-
-            SendClientMessage(i,-1,""RED"Leader "WHITE"Has Set New Tag For Gang");
+          SetPlayerName(i,newname);
+          SendClientMessage(i,-1,""RED"Leader "WHITE"Has Set New Tag For Gang");
         }
     }
 
@@ -1653,18 +1652,6 @@ CMD:ghelp(playerid)
 }
 
 
-CMD:backup(playerid)
-{
-    
-    CheckGangMembership(playerid);
-
-    new str[128]; format(str, sizeof(str), ""ORANGE"%s (%i) is requesting backup!", GInfo[playerid][username], playerid);
-    
-    SendGangMessage(playerid, str);
-}
-
-
-CMD:requestbackup(playerid) return cmd_backup(playerid);
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
