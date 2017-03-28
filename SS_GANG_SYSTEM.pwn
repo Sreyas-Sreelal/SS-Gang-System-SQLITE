@@ -25,7 +25,7 @@
                                       |----------------------------------------------------------------|
                                       |       ==ADVANCED GANG SYSTEM SQLLITE==                         |
                                       |       ==AUTHOR:SREYAS==                                        |
-                                      |       ==Version:1.0==                                          |
+                                      |       ==Version:2.0==                                          |
                                       |                                                                |
                                       |   =======Commands=========                                     |
                                       |   /gcp        - to enter gang control panel                    |
@@ -196,7 +196,7 @@ enum Zone_Data
     Float:ZmaxX,
     Float:ZmaxY,
     Region,
-    _Zone
+    Zone_Wrapper
 }
 
 static ZInfo[MAX_GZONES][Zone_Data];
@@ -263,7 +263,7 @@ public OnFilterScriptInit()
                                                 ZInfo[iter][ZmaxY]
                                               );
             
-            ZInfo[iter][_Zone] = GangZoneCreate( 
+            ZInfo[iter][ Zone_Wrapper] = GangZoneCreate( 
                                                   ZInfo[iter][ZminX],
                                                   ZInfo[iter][ZminY],  
                                                   ZInfo[iter][ZmaxX],
@@ -283,7 +283,7 @@ public OnFilterScriptExit()
 {
     foreach(new i : Zones)
     {
-        GangZoneDestroy(ZInfo[i][_Zone]);
+        GangZoneDestroy(ZInfo[i][ Zone_Wrapper]);
         Area_Delete(ZInfo[i][Region]);
     }
 
@@ -336,7 +336,7 @@ public OnPlayerConnect(playerid)
     PlayerTextDrawSetShadow(playerid, GInfo[playerid][TimerTD], -1);
 
     foreach(new i:Zones)
-      GangZoneShowForPlayer(playerid,ZInfo[i][_Zone], (isnull(ZInfo[i][Owner])) ?(ZONE_COLOR): (ZInfo[i][Color])) ;
+      GangZoneShowForPlayer(playerid,ZInfo[i][ Zone_Wrapper], (isnull(ZInfo[i][Owner])) ?(ZONE_COLOR): (ZInfo[i][Color])) ;
 
         
     
@@ -621,14 +621,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                                                     GInfo[playerid][maxX], 
                                                     GInfo[playerid][maxY]
                                                   );
-                ZInfo[Iter][_Zone] = GangZoneCreate(
+                ZInfo[Iter][ Zone_Wrapper] = GangZoneCreate(
                                                     GInfo[playerid][minX],
                                                     GInfo[playerid][minY], 
                                                     GInfo[playerid][maxX],
                                                     GInfo[playerid][maxY]
                                                   );
                 Iter_Add(Zones, Iter);
-                GangZoneShowForAll(ZInfo[Iter][_Zone],ZONE_COLOR);
+                GangZoneShowForAll(ZInfo[Iter][ Zone_Wrapper],ZONE_COLOR);
             }
         }
 
@@ -779,7 +779,7 @@ public OnPlayerLeaveArea(playerid, areaid)
                 ZInfo[i][timer_main] = SetTimerEx("UnlockZone",1000,true,"i",i);
             }
             ZInfo[i][U_Attack] = false;
-            GangZoneStopFlashForAll(ZInfo[i][_Zone]);
+            GangZoneStopFlashForAll(ZInfo[i][ Zone_Wrapper]);
             PlayerTextDrawHide(playerid, GInfo[playerid][TextDraw]);
         }
     }
@@ -1228,7 +1228,7 @@ CMD:capture(playerid)
     if(!strcmp(ZInfo[i][Owner],GInfo[playerid][gangname],true)&&!isnull(ZInfo[i][Owner])) 
       return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Your Gang Own this Zone");
 
-    GangZoneFlashForAll(ZInfo[i][_Zone], 0xFF0000AA);
+    GangZoneFlashForAll(ZInfo[i][ Zone_Wrapper], 0xFF0000AA);
     GInfo[playerid][Capturing] = true;
     ZInfo[i][U_Attack] = true;
 
@@ -1315,9 +1315,9 @@ public CaptureZone(playerid,zoneid)
 
         if(ZInfo[zoneid][U_Attack])
         {
-            GangZoneStopFlashForAll(ZInfo[zoneid][_Zone]);
+            GangZoneStopFlashForAll(ZInfo[zoneid][ Zone_Wrapper]);
             new color = (GInfo[playerid][gangcolor] & ~0xFF) | 50;
-            GangZoneShowForAll(ZInfo[zoneid][_Zone], color);
+            GangZoneShowForAll(ZInfo[zoneid][ Zone_Wrapper], color);
             format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
             ZInfo[zoneid][locked] = true;
             ZInfo[zoneid][Color] = color;
