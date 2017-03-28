@@ -207,13 +207,14 @@ public OnFilterScriptInit()
 
     Database = db_open("gang.db");
     db_query( Database, "PRAGMA synchronous = OFF" );
-    db_query(Database,"CREATE TABLE `Gangs` (\
-                                              `GangID`  INT(3) PRIMARY KEY AUTOINCREMENT,\
-                                              `GangName`  VARCHAR(24),\
-                                              `GangColor` INTEGER,\
-                                              `GangTag` VARCHAR(4),\
-                                              `GangScore` INTEGER DEFAULT 0\
-                                              )");
+    db_query(Database,"CREATE TABLE IF NOT EXISTS Gangs (\
+                                                          GangID  INT(3) PRIMARY KEY AUTOINCREMENT,\
+                                                          GangName  VARCHAR(24),\
+                                                          GangColor INTEGER,\
+                                                          GangTag VARCHAR(4),\
+                                                          GangScore INTEGER DEFAULT 0\
+                                                        )");
+    
     db_query(Database,"CREATE TABLE IF NOT EXISTS Zones (\
                                                           Name VARCHAR(32) COLLATE NOCASE,\
                                                           MinX FLOAT,\
@@ -223,11 +224,12 @@ public OnFilterScriptInit()
                                                           Owner VARCHAR(32) COLLATE NOCASE,\
                                                           Color INTEGER\
                                                         )");
-    db_query(Database,"CREATE TABLE `Members` (\
-                                                `GangID`  INT(3),\
-                                                `UserName`  VARCHAR(24) UNIQUE NOT NULL,\
-                                                `GangLeader`  TINYINT DEFAULT 0\
-                                              )");
+    
+    db_query(Database,"CREATE TABLE IF NOT EXISTS Members (\
+                                                            GangID  INT(3),\
+                                                            UserName  VARCHAR(24) UNIQUE NOT NULL,\
+                                                            GangLeader  TINYINT DEFAULT 0\
+                                                          )");
 
     new  
         DBResult:Result,
