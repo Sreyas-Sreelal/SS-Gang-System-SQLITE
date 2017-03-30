@@ -71,6 +71,11 @@
 #include <YSI\y_iterate> //Y LESS
 #include <YSI\y_areas> //Y LESS
 
+#define DEBUG_MODE (true)  // for developers only
+
+
+
+
 //-----Dialogs--------------
 enum 
 {
@@ -208,21 +213,22 @@ public OnFilterScriptInit()
     Database = db_open("gang.db");
     db_query( Database, "PRAGMA synchronous = OFF" );
     db_query(Database,"CREATE TABLE IF NOT EXISTS Gangs (\
-                                                          GangID  INT(3) PRIMARY KEY AUTOINCREMENT,\
+                                                          GangID  INTEGER PRIMARY KEY AUTOINCREMENT,\
                                                           GangName  VARCHAR(24),\
                                                           GangColor INTEGER,\
                                                           GangTag VARCHAR(4),\
                                                           GangScore INTEGER DEFAULT 0\
                                                         )");
     
+    
+
     db_query(Database,"CREATE TABLE IF NOT EXISTS Zones (\
                                                           Name VARCHAR(32) COLLATE NOCASE,\
+                                                          OwnerID  INT(3) DEFAULT 0,\
                                                           MinX FLOAT,\
                                                           MinY FLOAT,\
                                                           MaxX FLOAT,\
-                                                          MaxY FLOAT,\
-                                                          Owner VARCHAR(32) COLLATE NOCASE,\
-                                                          Color INTEGER\
+                                                          MaxY FLOAT\
                                                         )");
     
     db_query(Database,"CREATE TABLE IF NOT EXISTS Members (\
@@ -234,7 +240,9 @@ public OnFilterScriptInit()
     new  
         DBResult:Result,
                  iter;
-    Result = db_query(Database,"SELECT * FROM Zones");
+    Result = db_query(Database,"SELECT NAME,MinX,MinY,MaxX,MaxY,GangName,GangCOLOR \
+                                FROM ZONES \
+                                LEFT JOIN GANGS ON ZONES.OWNERID = GANGS.GANGID");
 
     if(db_num_rows(Result))
     {
@@ -242,14 +250,17 @@ public OnFilterScriptInit()
         do
         {
             iter = Iter_Free(Zones);
+            
+
+
             ZInfo[iter][ZminX] = db_get_field_assoc_float(Result, "MinX");
             ZInfo[iter][ZminY] = db_get_field_assoc_float(Result, "MinY");
             ZInfo[iter][ZmaxX] = db_get_field_assoc_float(Result, "MaxX");
             ZInfo[iter][ZmaxY] = db_get_field_assoc_float(Result, "MaxY");
             db_get_field_assoc(Result, "Name", ZInfo[iter][Name], 32);
-            db_get_field_assoc(Result, "Owner", ZInfo[iter][Owner], 32);
+            db_get_field_assoc(Result, "GangName", ZInfo[iter][Owner], 32);
             
-            ZInfo[iter][Color] = db_get_field_assoc_int(Result, "Color");
+            ZInfo[iter][Color] = db_get_field_assoc_int(Result, "GangColor");
             ZInfo[iter][locked] = false;
             ZInfo[iter][Owned] = false;
             ZInfo[iter][U_Attack] = false;
@@ -262,12 +273,25 @@ public OnFilterScriptInit()
                                               );
             
             ZInfo[iter][ Zone_Wrapper] = GangZoneCreate( 
-                                                  ZInfo[iter][ZminX],
-                                                  ZInfo[iter][ZminY],  
-                                                  ZInfo[iter][ZmaxX],
-                                                  ZInfo[iter][ZmaxY]
-                                                );
+                                                          ZInfo[iter][ZminX],
+                                                          ZInfo[iter][ZminY],  
+                                                          ZInfo[iter][ZmaxX],
+                                                          ZInfo[iter][ZmaxY]
+                                                       );
+            
             Iter_Add(Zones, iter);
+            #if DEBUG_MODE == true
+                printf("Iter : %d Name : %s COLOR : %d min x : %d y :%d max x :%d y :%d ",
+                        iter,ZInfo[iter][Name],
+                        ZInfo[iter][Color],
+                        ZInfo[iter][ZminX],
+                        ZInfo[iter][ZminY],
+                        ZInfo[iter][ZmaxX],
+                        ZInfo[iter][ZmaxX]
+                      );
+            #endif
+
+
         } while(db_next_row(Result));
     }
 
@@ -1246,7 +1270,8 @@ CMD:capture(playerid)
         return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"You are capturing this zone! ");
     if(ZInfo[i][U_Attack]) 
         return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Another gang is already set an atttack on  this zone!");
-    if(!strcmp(ZInfo[i][Owner],GInfo[playerid][gangname],true)&&!isnull(ZInfo[i][Owner])) 
+    
+    if(!strcmp(ZInfo[i][Owner],GInfo[playerid][gangname],true) && !isnull(ZInfo[i][Owner])) 
         return SendClientMessage(playerid,-1,""RED"[ERROR] "GREY"Your Gang Own this Zone");
 
     GangZoneFlashForAll(ZInfo[i][ Zone_Wrapper], 0xFF0000AA);
@@ -1345,7 +1370,7 @@ public CaptureZone(playerid,zoneid)
             new 
                 Query[300],
                 msg[150];
-            format(Query,sizeof Query,"UPDATE Zones SET Owner = '%q',Color = %i WHERE Name = '%q'",ZInfo[zoneid][Owner],ZInfo[zoneid][Color],ZInfo[zoneid][Name]);
+            format(Query,sizeof Query,"UPDATE Zones SET OwnerID = '%d' WHERE Name = '%q'",GInfo[playerid][gangid],ZInfo[zoneid][Name]);
             db_query(Database,Query);
             format(msg,sizeof msg,"%s%s "ORANGE" gang has successfully captured"GREEN" %s "ORANGE"zone. It will be locked for "RED"%d "ORANGE"minute(s)",IntToHex(GInfo[playerid][gangcolor]),GInfo[playerid][gangname],ZInfo[zoneid][Name],((ZONE_LOCK_TIME)/60));
             SendClientMessageToAll(-1,msg);
@@ -1354,7 +1379,7 @@ public CaptureZone(playerid,zoneid)
             ZInfo[zoneid][U_Attack] = false;
             GInfo[playerid][Capturing] = false;
             
-            format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+10 WHERE GangName = '%q'",GInfo[playerid][gangname]);
+            format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+10 WHERE GangID = '%d'",GInfo[playerid][gangid]);
             db_query(Database,Query);
         }
  
