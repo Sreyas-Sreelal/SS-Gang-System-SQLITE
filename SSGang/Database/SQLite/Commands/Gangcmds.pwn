@@ -1,6 +1,4 @@
 
-
-
 CMD:creategang(playerid,params[])
 {
     

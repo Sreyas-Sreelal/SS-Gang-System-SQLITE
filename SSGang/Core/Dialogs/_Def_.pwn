@@ -1,11 +1,3 @@
-#include <YSI\y_hooks>
-
-hook OnPlayerConnect(playerid)
-{
-    printf("TEST CALL BACK");
-    return 1;
-}
-
 enum 
 {
     GANG_COLOR,

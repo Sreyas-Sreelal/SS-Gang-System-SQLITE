@@ -2,7 +2,6 @@
 forward FullyConnect(playerid);
 public FullyConnect(playerid)
 {
-    printf("FULLY CONNCTED ");
     if(!isnull(GInfo[playerid][gangtag]))
     {
         new newname[24];

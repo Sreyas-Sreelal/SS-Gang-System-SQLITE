@@ -1,13 +1,77 @@
 
+
+/*
+
+  _________ _________         ________                              _________               __
+ /   _____//   _____/        /  _____/_____    ____    ____        /   _____/__.__. _______/  |_  ____   _____
+ \_____  \ \_____  \        /   \  ___\__  \  /    \  / ___\       \_____  <   |  |/  ___/\   __\/ __ \ /     \
+ /        \/        \       \    \_\  \/ __ \|   |  \/ /_/  >      /        \___  |\___ \  |  | \  ___/|  Y Y  \
+/_______  /_______  /        \______  (____  /___|  /\___  /      /_______  / ____/____  > |__|  \___  >__|_|  /
+        \/        \/                \/     \/     \//_____/               \/\/         \/            \/      \/
+                                     __________
+                                     \______   \___.__.
+                                      |    |  _<   |  |
+                                      |    |   \\___  |
+                                      |______  // ____|
+                                             \/ \/ _________
+                                                  /   _____/______   ____ ___.__._____    ______
+                                                  \_____  \\_  __ \_/ __ <   |  |\__  \  /  ___/
+                                                  /        \|  | \/\  ___/\___  | / __ \_\___ \
+                                                 /_______  /|__|    \___  > ____|(____  /____  >
+                                                         \/             \/\/          \/     \/
+
+
+
+
+                                      |----------------------------------------------------------------|
+                                      |            ==ADVANCED GANG SYSTEM SQLLITE==                    |
+                                      |            ==AUTHOR:SREYAS==                                   |
+                                      |            ==COLLABRATORS: AndySedeyn,Konstantinos==           |
+                                      |            ==Version:1.0==                                     |
+                                      |                                                                |
+                                      |        =======Commands=========                                |
+                                      |   /gcp        - to enter gang control panel                    |
+                                      |   /creategang - to create new gang                             |
+                                      |   /gangtag    - to add tag to your gang                        |
+                                      |   /gwar       - to challenge other gang members for a gang war |
+                                      |   /backup     - to request backup                              |
+                                      |   /gkick      - to kick a member from gang                     |
+                                      |   /setleader  - to set a member to leader                      |
+                                      |   /gmembers   - to see whole members of gang                   |
+                                      |   /top        - to see top 10 gangs                            |
+                                      |   /ginvite    - to invite some to your gang                    |
+                                      |   /accept     - to accept an invitation                        |
+                                      |   /decline    - to decline an invitation                       |
+                                      |   /gangcolor  - to change your gang color                      |
+                                      |   /lg         - to leave the gang                              |
+                                      |   /capture    - to capture a gangzone                          |
+                                      |   /createzone - to create a gang zone(Rcon only)               |
+                                      |   /zones      -  to show all gang zone and their details       |
+                                      |   /ghelp      - to view all cmds                               |
+                                      |                                                                |
+                                      |          ======Other Features=====                             |
+                                      |    Use '#' to gang chat                                        |
+                                      |    Each kill give 1 score for gang                             |
+                                      |    Gang Member's death will be notified                        |
+                                      |    Gang will be destroyed if a leader leaves it                |
+                                      |    Gang Members will get 100$ per each 10 minutes              |
+                                      |    Gang Zone will locked for certain time given by user        |
+                                      |    Capturing gang zone gives 10 score to the gang              |
+                                      |    In game dynamic gang zone creator                           |
+                                      |    On entering the zone zone info will be displayed to player  |
+                                      |                                                                |
+                                      |                                                                |
+                                      |----------------------------------------------------------------|
+*/
+
+
 #define FILTERSCRIPT
 
 #include <a_samp> //SA - MP TEAM
-
-
-
-//#include <YSI\y_hooks>
-#include <sscanf2> 
-#include <zcmd>    //ZEEX
+#include <sscanf2> //YLESS
+#include <zcmd>   //ZEEX 
+#include <YSI\y_iterate> //Y LESS
+#include <YSI\y_areas> //Y LESS
 
 #define DEBUG (true)  // for developers only
 
@@ -46,19 +110,6 @@ IsPlayerInArea(playerid,Float:MinX,Float:MinY,Float:MaxX,Float:MaxY)
     return 0;
 }
 
-
-
-/*public OnPlayerConnect(playerid)
-{	
-	printf("MAIN CONNECT CALLED");
-	return 1;
-
-}*/
-
-
-#include <YSI\y_iterate> //Y LESS
-#include <YSI\y_areas> 
-
 new 
 	Iterator:SS_Player<MAX_PLAYERS>,
     Iterator:Zones<MAX_GZONES>;
@@ -66,14 +117,12 @@ new
 #include "SSGANG\Core\Dialogs\_Def_.pwn"
 #include "SSGANG\Database\SQLite\DBHandle.pwn"
 #include "SSGANG\Core\Gangs\Data.pwn"
-
 #include "SSGANG\Core\Players\PInit.pwn"    
 #include "SSGANG\Core\Gangs\GInit.pwn"
 #include "SSGANG\Database\SQLite\PlayersDB.pwn"
 #include "SSGANG\Core\TextDraws\TInit.pwn"
 #include "SSGANG\Core\Zones\Commands.pwn"
 #include "SSGANG\Core\Zones\ZInit.pwn"
-
 #include "SSGANG\Database\SQLite\GangDB.pwn"
 #include "SSGANG\Database\SQLite\ZoneLoad.pwn"
 #include "SSGANG\Core\Gangs\Functions.pwn"

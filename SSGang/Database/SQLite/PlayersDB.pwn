@@ -15,7 +15,6 @@ hook OnPlayerConnect(playerid)
 	new  
         Query[107],
         DBResult: Result;
-    printf("asdasdasd");
     format(Query, sizeof(Query),"SELECT * FROM Members WHERE UserName = '%q' LIMIT 0, 1",GInfo[playerid][username]);
     Result = db_query(Database,Query);
 

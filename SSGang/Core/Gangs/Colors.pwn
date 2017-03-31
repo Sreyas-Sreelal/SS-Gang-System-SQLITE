@@ -1,6 +1,4 @@
 
-
-
 #define G_PURPLE                0xD526D9FF
 #define G_GREEN                 0x00FF00FF
 #define G_PINK                  0xFFB6C1FF

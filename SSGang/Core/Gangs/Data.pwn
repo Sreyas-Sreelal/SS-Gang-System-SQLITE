@@ -1,6 +1,4 @@
 
-
-
 enum G_USER_DATA
 {
     
