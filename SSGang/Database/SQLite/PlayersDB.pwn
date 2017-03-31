@@ -16,14 +16,10 @@ hook OnPlayerConnect(playerid)
         Query[107],
         DBResult: Result;
     printf("asdasdasd");
-    format( 
-            Query, sizeof( Query ), 
-            "SELECT * FROM Members WHERE UserName = '%q' LIMIT 0, 1", 
-            GInfo[playerid][username]
-          );
-    Result = db_query( Database, Query );
+    format(Query, sizeof(Query),"SELECT * FROM Members WHERE UserName = '%q' LIMIT 0, 1",GInfo[playerid][username]);
+    Result = db_query(Database,Query);
 
-    if( db_num_rows( Result ) )//if the connected player is in member table (ie he is a gang member)
+    if(db_num_rows(Result))//if the connected player is in member table (ie he is a gang member)
     {
 
         GInfo[playerid][gangmember] = true;

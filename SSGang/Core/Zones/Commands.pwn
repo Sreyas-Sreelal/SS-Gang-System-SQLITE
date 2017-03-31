@@ -110,11 +110,10 @@ public CaptureZone(playerid,zoneid)
         if(ZInfo[zoneid][U_Attack])
         {
             GangZoneStopFlashForAll(ZInfo[zoneid][ Zone_Wrapper]);
-            new color = (GInfo[playerid][gangcolor] & ~0xFF) | 80;
-            GangZoneShowForAll(ZInfo[zoneid][ Zone_Wrapper], color);
+            ZInfo[zoneid][Color] = (GInfo[playerid][gangcolor] & ~0xFF) | ZONE_COLOR_OPAQUE_VALUE;
+            GangZoneShowForAll(ZInfo[zoneid][ Zone_Wrapper], ZInfo[zoneid][Color]);
             format(ZInfo[zoneid][Owner],24,"%s",GInfo[playerid][gangname]);
             ZInfo[zoneid][locked] = true;
-            ZInfo[zoneid][Color] = color;
             new 
                 Query[300],
                 msg[150];

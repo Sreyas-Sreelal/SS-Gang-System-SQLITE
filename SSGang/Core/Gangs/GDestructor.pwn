@@ -3,7 +3,8 @@
 
 hook OnPlayerDisconnect(playerid,reason)
 {
-    SetPlayerName(playerid,GInfo[playerid][username]);//just to avoid some bugs
+    if(!isnull(GInfo[playerid][username]))
+        SetPlayerName(playerid,GInfo[playerid][username]);//just to avoid some bugs
 
     if(GInfo[playerid][inwar])
     {

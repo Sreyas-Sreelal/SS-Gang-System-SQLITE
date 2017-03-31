@@ -11,3 +11,4 @@ hook OnPlayerConnect(playerid)
     GInfo[playerid][Capturing] = false;
     return 1;
 }
+

@@ -8,3 +8,4 @@ hook OnPlayerConnect(playerid)
 	Iter_Add(SS_Player,playerid);
 	return 1;
 }
+
