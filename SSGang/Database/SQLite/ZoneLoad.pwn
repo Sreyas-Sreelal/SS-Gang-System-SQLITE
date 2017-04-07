@@ -1,4 +1,11 @@
 
+
+/*
+
+ZoneLoad.pwn - Contains DB handling to Zones table
+
+*/
+
 #include <YSI\y_hooks>
 
 hook OnFilterScriptInit()

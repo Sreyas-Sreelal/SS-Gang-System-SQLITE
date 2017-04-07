@@ -1,3 +1,9 @@
+/*
+
+GangDB.pwn - Contains DB handling to Gangs table
+
+*/
+
 #include <YSI\y_hooks>
 
 hook OnFilterScriptInit()

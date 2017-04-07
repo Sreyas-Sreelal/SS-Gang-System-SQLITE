@@ -1,3 +1,9 @@
+/*
+
+TInit.pwn - Contains custom user interfaces
+
+*/
+
 #include <YSI\y_hooks>
 
 hook OnPlayerConnect(playerid)

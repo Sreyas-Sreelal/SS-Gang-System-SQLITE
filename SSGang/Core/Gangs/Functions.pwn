@@ -1,5 +1,58 @@
 
+/*
+Functions.pwn - Contains the defintions of custom made functions handling gangs
+*/
+
+/*
+
+Calls  after some time of connection so as to avoid corrupted writing of data on connection
+
+Params: 
+        playerid - connected player's id 
+
+returns: 1
+
+*/
+
+forward FullyConnect(playerid);
+public FullyConnect(playerid)
+{
+    if(!isnull(GInfo[playerid][gangtag]))
+    {
+        new newname[24];
+        format(newname,sizeof newname,"%s[%s]",GInfo[playerid][username],GInfo[playerid][gangtag]);
+        SetPlayerName(playerid,newname);
+        SetPlayerColor(playerid,GInfo[playerid][gangcolor]);
+    }
+    return 1;
+}
+
+
+
+
+
+
+
 forward GangWar(playerid,enemyid);
+
+/*
+
+Fucntion to handle gangwar for gangs
+
+Params: 
+        playerid - connected player's id
+        enemyid  - enemy's id    
+
+returns: 1
+
+*/
+
+/*
+
+NOTE: Need to rewrite
+
+*/
+
 public GangWar(playerid,enemyid)
 {
     new 
@@ -47,6 +100,14 @@ public GangWar(playerid,enemyid)
 
 
 forward GMoney(playerid);
+
+/*
+
+This function calls on a certain intervals (provided by user) to give players money as reward for
+being a gang member
+
+*/
+
 public GMoney(playerid)
 {
     GivePlayerMoney(playerid,100);
@@ -54,7 +115,18 @@ public GMoney(playerid)
     return 1;
 }
 
+/*
 
+Function to check whether a gang won in the war.
+
+params:
+        gname1[] - naem of participant 1 
+        gname2[] - name of participant 2 
+
+
+returns: nothing
+
+*/
 CheckVict(gname1[],gname2[])
 {
     new count1,count2,pid,eid;
@@ -113,22 +185,41 @@ CheckVict(gname1[],gname2[])
         format(Query,sizeof(Query),"UPDATE Gangs SET GangScore = GangScore+5 WHERE GangName = '%q'",winner);
         db_query(Database,Query);
     }
-    return 1;
+    
 }
+/*
 
+Function to convert integer hex values to string one 
+
+parmas:
+        var - variable holding hexadecimal value
+
+returns: converted hex value (string)
+
+*/
 IntToHex(var)
 {
     new hex[10];
     format(hex,sizeof hex,"{%06x}", var >>> 8);
     return hex;
 }
+/*
 
-SendGangMessage(playerid,Message[])
+Function sending message to specified gang or group
+
+params:
+        ID - id of the of  gang
+        Message[] - Message to be send
+
+returns: 1 
+
+*/
+SendGangMessage(ID,Message[])
 {
     foreach(new i : SS_Player)
     {
-        if(!strcmp(GInfo[playerid][gangname],GInfo[i][gangname],false) && !isnull(GInfo[i][gangname]))
+        if(GInfo[i][gangid] == ID)
             SendClientMessage(i,-1,Message);
     }
-    return 0;
+    return 1;
 }

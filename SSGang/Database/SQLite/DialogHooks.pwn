@@ -1,5 +1,14 @@
 
+
+/*
+
+DialogHooks.pwn - Contains dialog responses that have handle to databases 
+
+*/
+
+
 #include <YSI\y_hooks>
+
 
 hook OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
@@ -80,7 +89,7 @@ hook OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 new Query[116];
                 format(Query,sizeof(Query),"UPDATE Gangs SET GangColor = %d Where GangID = %d",GInfo[playerid][gangcolor],GInfo[playerid][gangid]);
                 db_query(Database,Query);
-                SendGangMessage(playerid,""RED"Leader"YELLOW" Has changed gang color");
+                SendGangMessage(GInfo[playerid][gangid],""RED"Leader"YELLOW" Has changed gang color");
                 return 1;
 
             }

@@ -1,4 +1,10 @@
 
+/*
+
+CallBackHooks.pwn - Contains dialgo responses that have handle to databases 
+
+*/
+
 #include <YSI\y_hooks>
 
 hook OnPlayerDeath(playerid, killerid, reason)
@@ -29,7 +35,7 @@ hook OnPlayerDeath(playerid, killerid, reason)
             {
                 format(rvg,sizeof(rvg),""GREY"The member of your Gang "RED"%s "GREY"has been killed by a Player Named "RED"%s ",GInfo[playerid][username],GInfo[killerid][username]);
             }
-            SendGangMessage(playerid,rvg);
+            SendGangMessage(GInfo[playerid][gangid],rvg);
         }
     }
 

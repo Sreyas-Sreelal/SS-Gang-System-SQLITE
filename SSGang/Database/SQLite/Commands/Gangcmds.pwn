@@ -1,4 +1,9 @@
 
+/*
+
+GangCmds.pwn - Contains commands that has handle to both gangs as well as database
+
+*/
 CMD:creategang(playerid,params[])
 {
     
@@ -29,8 +34,6 @@ CMD:creategang(playerid,params[])
     GInfo[playerid][gangleader] = 1;
     ShowPlayerDialog(playerid,GANG_COLOR,DIALOG_STYLE_LIST,"Gang Color",""BLUE"Blue\n"RED"RED\n"WHITE"White\n"PINK"Pink\n"CYAN"Cyan\n"ORANGE"Orange\n"GREEN"Green\n"YELLOW"Yellow","OK","CANCEL");
     new Query[217];
-    //format(Query,sizeof(query),"UPDATE Members SET GangName = '%q' ,GangMember = 1,GangLeader = 1 WHERE UserName = '%q' ",params,GInfo[playerid][username]);
-    
     format( Query, sizeof(Query), "INSERT INTO Gangs (GangName,GangColor) VALUES ('%q','%q')", GInfo[playerid][gangname],GInfo[playerid][gangcolor]);
     db_query(Database,Query);
     result = db_query(Database, "SELECT last_insert_rowid()");

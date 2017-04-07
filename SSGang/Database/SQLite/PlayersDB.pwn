@@ -1,10 +1,18 @@
+
+/*
+
+PlayersDB.pwn - Contains DB handling to Members table
+
+*/
+
+
 #include <YSI\y_hooks>
 
 hook OnFilterScriptInit()
 {
 	db_query(Database,"CREATE TABLE IF NOT EXISTS Members (\
                                                             GangID  INT(3),\
-                                                            UserName  VARCHAR(24) UNIQUE NOT NULL,\
+                                                            UserName  VARCHAR(24) UNIQUE NOT NULL COLLATE NOCASE,\
                                                             GangLeader  TINYINT DEFAULT 0\
                                                           )");
 	return 1;
@@ -34,14 +42,14 @@ hook OnPlayerConnect(playerid)
         {
 
             format(str,sizeof(str),""RED"[GANG INFO]"ORANGE"Leader"GREEN" %s "ORANGE"has Logged in!!",GInfo[playerid][username]);
-            SendGangMessage(playerid,str);
+            SendGangMessage(GInfo[playerid][gangid],str);
         }
 
         else 
         {
 
             format(str,sizeof(str),""RED"[GANG INFO]"CYAN"Member"YELLOW" %s "ORANGE"has Logged in!!",GInfo[playerid][username]);
-            SendGangMessage(playerid,str);
+            SendGangMessage(GInfo[playerid][gangid],str);
         }
 
 

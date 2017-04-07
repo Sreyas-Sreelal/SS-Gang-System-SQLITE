@@ -1,4 +1,13 @@
 
+/*
+
+Response.pwn - contains hooked callback handling dialog responses from player 
+
+NOTE: this file doesn't contain responses that have a handle to database.
+
+*/
+
+
 #include <YSI\y_hooks>
 
 hook OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])

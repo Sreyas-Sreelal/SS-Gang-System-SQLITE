@@ -1,3 +1,10 @@
+
+/*
+
+DBHandle.pwn - Contains primary handles of SQLite DB 
+
+*/
+
 #include <YSI\y_hooks>
 
 new DB:Database;

@@ -1,3 +1,10 @@
+
+/*
+
+ZoneCreator.pwn - Contains script handling dynamic zone creation.
+
+
+*/
 #include <YSI\y_hooks>
 
 hook OnPlayerUpdate(playerid)
@@ -7,7 +14,7 @@ hook OnPlayerUpdate(playerid)
         static keys,ud,lr;
         GetPlayerKeys(playerid,keys,ud,lr);
 
-        if(lr == KEY_LEFT)
+        if(lr == KEY_LEFT)//if Left arrow key pressed
         {
             GInfo[playerid][minX] -= 6.0;
             GangZoneDestroy(GInfo[playerid][tempzone]);
@@ -21,7 +28,7 @@ hook OnPlayerUpdate(playerid)
             GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
         }
         
-        else if(lr == KEY_RIGHT)
+        else if(lr == KEY_RIGHT)//if Right arrow key pressed
         {
             GInfo[playerid][maxX] += 6.0;
             GangZoneDestroy(GInfo[playerid][tempzone]);
@@ -35,7 +42,7 @@ hook OnPlayerUpdate(playerid)
             GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone],ZONE_COLOR);
         }
 
-        else if(ud == KEY_UP)
+        else if(ud == KEY_UP)//if Upward arrow key pressed
         {
             GInfo[playerid][maxY] += 6.0;
             GangZoneDestroy(GInfo[playerid][tempzone]);
@@ -49,7 +56,7 @@ hook OnPlayerUpdate(playerid)
             GangZoneShowForPlayer(playerid, GInfo[playerid][tempzone], ZONE_COLOR);
         }
 
-        else if(ud == KEY_DOWN)
+        else if(ud == KEY_DOWN)//if Downward arrow key pressed
         {
             GInfo[playerid][minY] -= 6.0;
             GangZoneDestroy(GInfo[playerid][tempzone]);
@@ -64,7 +71,7 @@ hook OnPlayerUpdate(playerid)
 
         }
 
-        else if(keys & KEY_WALK)
+        else if(keys & KEY_WALK)//if WALK key pressed arrow key pressed (stops creation process)
         {
             GInfo[playerid][creatingzone] = false;
             TogglePlayerControllable(playerid,true);

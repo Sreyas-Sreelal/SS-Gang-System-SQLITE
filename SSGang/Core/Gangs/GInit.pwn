@@ -1,4 +1,8 @@
 
+/*
+GInit.pwn - Contains hooked callback to intialise gang variables for player on connection
+*/
+
 #include <YSI\y_hooks>
 
 hook OnPlayerConnect(playerid)
