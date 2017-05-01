@@ -1,6 +1,6 @@
 
 /*
-Functions.pwn - Contains the defintions of custom made functions handling gangs
+Functions.pwn - Contains the defintions of custom made functions handling gangs and other hooked callbacks
 */
 
 /*
@@ -222,4 +222,27 @@ SendGangMessage(ID,Message[])
             SendClientMessage(i,-1,Message);
     }
     return 1;
+}
+
+/*Hooked callback to handle clan chat*/
+
+hook OnPlayerText(playerid, text[])
+{
+    static str[128];
+   
+    if( GInfo[playerid][gangmember] == 1 && text[0] == CHAT_SYMBOL )
+    {
+        format(str,sizeof(str),""RED"[GANG CHAT]"ORANGE" %s: "WHITE"%s",GInfo[playerid][username],text[1]);
+        SendGangMessage(GInfo[playerid][gangid],str);
+        return 0;
+    }
+    
+    else
+    {
+        format(str, sizeof (str), "(%d) %s", playerid, text);
+        SetPlayerChatBubble(playerid, text, 0xFFFFFFFF, 100.0, 10000);
+        SendPlayerMessageToAll(playerid, str);
+        return 0;
+    }
+
 }

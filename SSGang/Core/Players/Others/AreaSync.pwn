@@ -19,14 +19,25 @@ hook OnPlayerEnterArea(playerid, areaid)
             {
                  format(str,sizeof str,"~y~Zone_Info~n~~b~Name:_~r~%s~n~~b~Status:_~r~Un_Owned",ZInfo[i][Name]);
                  PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw],str);
+                 
             }
             else
             {
                 format(str,sizeof str,"~y~Zone_Info_~n~~b~Name:_~r~%s~n~~b~Status:_~r~Owned-by_~g~%s",ZInfo[i][Name],ZInfo[i][Owner]);
                 PlayerTextDrawSetString(playerid, GInfo[playerid][TextDraw],str);
             }
-            if(ZInfo[i][U_Attack])
+            
+            if(!ZInfo[i][U_Attack])
+            {
                 PlayerTextDrawShow(playerid,GInfo[playerid][TextDraw]);
+                
+            }
+            
+            #if DEBUG == true
+                printf("text printing %s",str);
+
+            #endif
+            
             return 1;
         }
     }
