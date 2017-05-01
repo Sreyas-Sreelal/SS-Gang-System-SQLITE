@@ -127,7 +127,7 @@ new
 	Iterator:Zones<MAX_GZONES>;
     
 
-#include "SSGANG\Core\Dialogs\Dialog_Defs.pwn"
+#include "SSGANG\Core\Dialogs\DialogHandles.pwn"
 #include "SSGANG\Database\SQLite\DBHandle.pwn"
 #include "SSGANG\Core\Gangs\GangData.pwn"
 #include "SSGANG\Core\Players\PHandle.pwn"    
@@ -140,7 +140,6 @@ new
 #include "SSGANG\Database\SQLite\GangDB.pwn"
 #include "SSGANG\Database\SQLite\ZoneLoad.pwn"
 #include "SSGANG\Core\Gangs\Functions.pwn"
-#include "SSGANG\Core\Dialogs\Response.pwn"
 #include "SSGANG\Core\Gangs\GangColors.pwn"
 #include "SSGANG\Core\Gangs\GDestructor.pwn"
 #include "SSGANG\Core\Zones\ZoneCreator.pwn"
