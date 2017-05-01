@@ -119,6 +119,17 @@
 #define BLUE    "{0000FF}"
 #define PINK    "{F7B0D0}"
 
+#define G_PURPLE                0xD526D9FF
+#define G_GREEN                 0x00FF00FF
+#define G_PINK                  0xFFB6C1FF
+#define G_CYAN                  0x33CCFFAA
+#define G_GREY                  0xAFAFAFAA
+#define G_WHITE                 0xFFFFFFFF
+#define G_ORANGE                0xFF8000FF
+#define G_YELLOW                0xFFFF00FF
+#define G_BLUE                  0x0080FFC8
+#define G_RED                   0xFF0000FF
+
 
 
 
@@ -126,10 +137,9 @@ new
 	Iterator:SS_Player<MAX_PLAYERS>,
 	Iterator:Zones<MAX_GZONES>;
     
-
+#include "SSGANG\Core\Gangs\GangData.pwn"
 #include "SSGANG\Core\Dialogs\DialogHandles.pwn"
 #include "SSGANG\Database\SQLite\DBHandle.pwn"
-#include "SSGANG\Core\Gangs\GangData.pwn"
 #include "SSGANG\Core\Players\PHandle.pwn"    
 #include "SSGANG\Core\Gangs\GInit.pwn"
 #include "SSGANG\Database\SQLite\PlayersDB.pwn"
@@ -140,14 +150,12 @@ new
 #include "SSGANG\Database\SQLite\GangDB.pwn"
 #include "SSGANG\Database\SQLite\ZoneLoad.pwn"
 #include "SSGANG\Core\Gangs\Functions.pwn"
-#include "SSGANG\Core\Gangs\GangColors.pwn"
 #include "SSGANG\Core\Gangs\GDestructor.pwn"
 #include "SSGANG\Core\Zones\ZoneCreator.pwn"
 #include "SSGANG\Database\SQLite\Commands\Gangcmds.pwn"
-#include "SSGANG\Database\SQLite\CallBackHooks.pwn"
 #include "SSGANG\Database\SQLite\DialogHooks.pwn"
 #include "SSGANG\Core\Players\Others\AreaSync.pwn"
-
+#include "SSGANG\Database\SQLite\CallBackHooks.pwn"
 
  
 
