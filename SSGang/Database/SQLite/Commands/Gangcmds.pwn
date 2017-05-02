@@ -273,6 +273,8 @@ CMD:gkick(playerid,params[])
         return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"/gkick playerid");
     if(giveid == INVALID_PLAYER_ID) 
         return SendClientMessage(playerid,-1,""RED"Invalid player!");
+    if(GInfo[giveid][gangid] != GInfo[playerid][gangid])
+        return SendClientMessage(playerid, -1 , ""RED"He is not in your gang ");
     if(GInfo[giveid][gangleader] == 1) 
         return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You cant kick a group leader");
 
