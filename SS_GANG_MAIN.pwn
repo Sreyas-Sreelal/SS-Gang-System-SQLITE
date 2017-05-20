@@ -146,17 +146,33 @@ new
 #include "SSGANG\Core\TextDraws\TInit.pwn"
 #include "SSGANG\Core\Zones\ZoneData.pwn"
 #include "SSGANG\Core\Zones\Zhandle.pwn"
-#include "SSGANG\Core\Zones\Commands.pwn"
+#include "SSGANG\Core\Zones\ZCmds.pwn"
 #include "SSGANG\Database\SQLite\GangDB.pwn"
 #include "SSGANG\Database\SQLite\ZoneLoad.pwn"
 #include "SSGANG\Core\Gangs\Functions.pwn"
 #include "SSGANG\Core\Gangs\GDestructor.pwn"
 #include "SSGANG\Core\Zones\ZoneCreator.pwn"
-#include "SSGANG\Database\SQLite\Commands\Gangcmds.pwn"
+#include "SSGANG\Database\SQLite\Commands\DBGangcmds.pwn"
+#include "SSGANG\Core\Gangs\GCmds.pwn"
 #include "SSGANG\Database\SQLite\DialogHooks.pwn"
 #include "SSGANG\Core\Players\Others\AreaSync.pwn"
 #include "SSGANG\Database\SQLite\CallBackHooks.pwn"
 
  
 
+/*
+public OnFilterScriptInit()
+{
+  for(new i; i <= GetPlayerPoolSize();++i)
+    if(IsPlayerConnected(i))
+      CallRemoteFunction("OnPlayerConnect", "i", i);
+  return 1;
+}
 
+public OnFilterScriptExit()
+{
+  for(new i; i <= GetPlayerPoolSize();++i)
+    if(IsPlayerConnected(i))
+      CallRemoteFunction("OnPlayerDisconnect", "ii", i,1);
+  return 1;
+}*/
