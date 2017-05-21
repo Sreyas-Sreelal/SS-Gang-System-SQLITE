@@ -71,7 +71,7 @@
 #include <sscanf2> //YLESS
 #include <zcmd>   //ZEEX 
 #include <YSI\y_iterate> //Y LESS
-#include <YSI\y_areas> //Y LESS
+
 
 #define DEBUG (true)  // for developers only
 
@@ -95,8 +95,18 @@
 #define MAX_SCORE                (0)                //Maximum score to create a gang
 #define ZONE_COLOR_OPAQUE_VALUE  (100)		  //Don't un neccessarily put value use your brain!
 #define CHAT_SYMBOL              '#'        //The prefix used for gang chat in game
+#define USE_STREAMER             (false)    //defining true uses streamer otherwise the script uses y_areas
 
+#if USE_STREAMER == true
+  #include<streamer>
+  #define Area_AddBox CreateDynamicRectangle
+  #define Area_Delete DestroyDynamicArea
+  #define OnPlayerEnterArea OnPlayerEnterDynamicArea
+  #define OnPlayerLeaveArea OnPlayerLeaveDynamicArea
+#else 
+  #include <YSI\y_areas>
 
+#endif
 
 /*
 ---------------------------------------------------------------------------------------------------

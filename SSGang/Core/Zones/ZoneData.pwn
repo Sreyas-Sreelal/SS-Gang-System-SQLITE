@@ -47,3 +47,15 @@ IsPlayerInArea(playerid,Float:MinX,Float:MinY,Float:MaxX,Float:MaxY)
     GetPlayerPos(playerid, X, Y, Z);
     return (X >= MinX && X <= MaxX && Y >= MinY && Y <= MaxY); 
 }
+
+bool:IsPlayerInAreaEx(playerid,zoneid)
+{
+    #if USE_STREAMER == true
+        printf("Streamer function returns %d",IsPlayerInDynamicArea(playerid,ZInfo[zoneid][Region]));
+        return bool:!!IsPlayerInDynamicArea(playerid,ZInfo[zoneid][Region]);
+    #else
+        return Area_GetPlayerAreas(playerid,0) == ZInfo[zoneid][Region]; 
+    #endif
+    
+   
+}

@@ -14,11 +14,11 @@ hook OnPlayerConnect(playerid)
 	#endif
 	
       foreach(new i:Zones)
-      GangZoneShowForPlayer(
-      				playerid,
-      				ZInfo[i][ Zone_Wrapper], 
-      				(isnull(ZInfo[i][Owner])) ?(ZONE_COLOR): (ZInfo[i][Color])
-      			   );
+        GangZoneShowForPlayer(
+          				playerid,
+          				ZInfo[i][ Zone_Wrapper], 
+          				(isnull(ZInfo[i][Owner])) ?(ZONE_COLOR): (ZInfo[i][Color])
+      			       );
       return 1;
 }
 
@@ -85,7 +85,7 @@ public CaptureZone(playerid,zoneid)
             ZInfo[zoneid][U_Attack] = false;
             foreach(new j : SS_Player)
             {
-                if(GInfo[playerid][gangid] == GInfo[j][gangid] && Area_GetPlayerAreas(j,0) == ZInfo[zoneid][Region])
+                if(GInfo[playerid][gangid] == GInfo[j][gangid] && IsPlayerInAreaEx(playerid,zoneid))
                     GInfo[j][Capturing] = false;
             }
             

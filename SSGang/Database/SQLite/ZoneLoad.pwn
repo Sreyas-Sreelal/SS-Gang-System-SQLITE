@@ -50,6 +50,7 @@ hook OnFilterScriptInit()
                                                 ZInfo[iter][ZmaxX], 
                                                 ZInfo[iter][ZmaxY]
                                               );
+
             
             ZInfo[iter][Zone_Wrapper] = GangZoneCreate( 
                                                         ZInfo[iter][ZminX],
@@ -60,8 +61,9 @@ hook OnFilterScriptInit()
             
             Iter_Add(Zones, iter);
             #if DEBUG == true
-                printf("Iter : %d Name : %s COLOR : %d min x : %d y :%d max x :%d y :%d ",
-                        iter,ZInfo[iter][Name],
+                printf("Iter : %d region : %d Name : %s COLOR : %d min x : %d y :%d max x :%d y :%d ",
+                        iter,ZInfo[iter][Region],
+                        ZInfo[iter][Name],
                         ZInfo[iter][Color],
                         ZInfo[iter][ZminX],
                         ZInfo[iter][ZminY],

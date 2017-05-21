@@ -5,11 +5,13 @@ AreaSync.pwn - Contains script to handle player's interaction with Areas
 
 */
 
-#include <YSI\y_hooks>
 
-hook OnPlayerEnterArea(playerid, areaid)
+public OnPlayerEnterArea(playerid, areaid)
 {
     static str[128];
+    #if DEBUG == true
+        printf("Called Entering call back");
+    #endif
     foreach(new i : Zones)
     {
         if(areaid == ZInfo[i][Region])
@@ -44,7 +46,7 @@ hook OnPlayerEnterArea(playerid, areaid)
     return 1;
 }
 
-hook OnPlayerLeaveArea(playerid, areaid)
+public OnPlayerLeaveArea(playerid, areaid)
 {
     static  
             msg[200],
@@ -70,11 +72,9 @@ hook OnPlayerLeaveArea(playerid, areaid)
                     if(j == playerid || !GInfo[playerid][gangid]) continue;
                     
                     
-                    if(GInfo[j][Capturing] && GInfo[j][gangid] == GInfo[playerid][gangid] && areaid == Area_GetPlayerAreas(j,0) )
+                    if(GInfo[j][Capturing] && GInfo[j][gangid] == GInfo[playerid][gangid] && IsPlayerInAreaEx(playerid,areaid) )
                     {
-                        #if DEBUG == true
-                            printf("GInfo[j][Capturing] = %d GInfo[j][gangid] = %d   Area_GetPlayerAreas(j,0) = %d ",GInfo[j][Capturing],GInfo[j][gangid],Area_GetPlayerAreas(j,0));
-                        #endif
+                        
                         flag_invaders = true;
                         break;
                     }
