@@ -10,7 +10,7 @@ public OnPlayerEnterArea(playerid, areaid)
 {
     static str[128];
     #if DEBUG == true
-        printf("Called Entering call back");
+        printf("Called Entering call back id : %d",areaid);
     #endif
     foreach(new i : Zones)
     {

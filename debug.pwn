@@ -6,3 +6,4 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
     return 1;
 }
 
+

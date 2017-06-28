@@ -30,10 +30,7 @@ public FullyConnect(playerid)
 
 
 
-
-
-
-forward GangWar(playerid,enemyid);
+forward GangWar(playerid,enemyid,arenaid);
 
 /*
 
@@ -53,11 +50,13 @@ NOTE: Need to rewrite
 
 */
 
-public GangWar(playerid,enemyid)
+public GangWar(playerid,enemyid,arenaid)
 {
     new 
         count1,
         count2;
+
+      
     foreach(new i : SS_Player)
     {
         if(!strcmp(GInfo[playerid][gangname],GInfo[i][gangname]))
@@ -67,7 +66,7 @@ public GangWar(playerid,enemyid)
             SetPlayerArmour(i,100);
             TogglePlayerControllable( i, true );
             GameTextForPlayer(i, "~w~War ~g~ Has~r~ Started", 5000, 5);
-            count1++;
+            ++count1;
         }
 
         if(!strcmp(GInfo[enemyid][gangname],GInfo[i][gangname]))
@@ -77,7 +76,7 @@ public GangWar(playerid,enemyid)
             SetPlayerArmour(i,100);
             TogglePlayerControllable( i, true );
             GameTextForPlayer(i, "~w~War ~g~ Has~r~ Started", 5000, 5);
-            count2++;
+            ++count2;
         }
     }
 
@@ -88,11 +87,14 @@ public GangWar(playerid,enemyid)
             if(GInfo[i][inwar] == true)
             {
                 GInfo[i][inwar] = false;
+                GInfo[i][warid] = INVALID_WAR_ID;
                 SpawnPlayer(i);
             }
         }
 
-        ActiveWar = false;
+        
+        ActiveWar[arenaid] = false;
+        Iter_Remove(WarArenas, arenaid);
         return SendClientMessageToAll(-1,""RED "Gang war ended due to low participants");
     }
     return 1;
@@ -151,24 +153,32 @@ CheckVict(gname1[],gname2[])
 
     if(count1 ==0 || count2 ==0)
     {
-        new winner[32];
+        new 
+            winner[32],
+            str[128],
+            tempwarid = GInfo[pid][warid];
+        
+        ActiveWar[tempwarid] = false;
+
+        Iter_Remove(WarArenas, tempwarid);
         foreach(new i : SS_Player)
         {
             if(GInfo[i][inwar])
             {
                 GInfo[i][inwar] = false;
+                GInfo[i][warid] = INVALID_WAR_ID;
                 SetPlayerInterior(i,0);
                 SpawnPlayer(i);
             }
         }
 
-        new str[128];
+        
   
         if(count1 == 0)
         {
             format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[eid][gangcolor]),GInfo[eid][gangname],IntToHex(GInfo[pid][gangcolor]),GInfo[pid][gangname]);
             SendClientMessageToAll(-1,str);
-            ActiveWar = false;
+            
             format(winner,sizeof winner,"%s",gname2);
         }
 
@@ -177,7 +187,7 @@ CheckVict(gname1[],gname2[])
              
             format(str,sizeof(str),"%s%s "WHITE"has won the war against %s%s",IntToHex(GInfo[pid][gangcolor]),GInfo[pid][gangname],IntToHex(GInfo[eid][gangcolor]),GInfo[eid][gangname]);
             SendClientMessageToAll(-1,str);
-            ActiveWar = false;
+            
             format(winner,sizeof winner,"%s",gname1);
         }
 

@@ -37,7 +37,7 @@ params:
         MaxX      - The X coordinate for the east side of the area.
         MaxY      - The Y coordinate for the north side of the area.
 
-returns: 1 on sucess or 0 otherwise        
+returns: 1 on success or 0 otherwise        
 
 */
 
@@ -48,6 +48,17 @@ IsPlayerInArea(playerid,Float:MinX,Float:MinY,Float:MaxX,Float:MaxY)
     return (X >= MinX && X <= MaxX && Y >= MinY && Y <= MaxY); 
 }
 
+/*
+Extended function to check whether player in an area or not while supporting both y_areas and streamer
+
+params:
+        playerid - id of player to be checked
+        zoneid   - id of zone to be checked
+
+returns: true on success or false otherwise
+
+*/
+
 bool:IsPlayerInAreaEx(playerid,zoneid)
 {
     #if USE_STREAMER == true
@@ -56,6 +67,5 @@ bool:IsPlayerInAreaEx(playerid,zoneid)
     #else
         return Area_GetPlayerAreas(playerid,0) == ZInfo[zoneid][Region]; 
     #endif
-    
    
 }

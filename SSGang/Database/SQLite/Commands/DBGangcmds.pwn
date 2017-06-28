@@ -296,15 +296,17 @@ CMD:gwar(playerid,params[])
 {
     if(GInfo[playerid][gangmember] == 0) return SendClientMessage(playerid,-1,""RED"You are not in a gang!");
     if(GInfo[playerid][gangleader] == 0) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not Authorised to do that!!");
-    if(ActiveWar == true) return SendClientMessage(playerid,-1,""RED"Error:"GREY"There is a War Going on now wait till it finishes");
+    new tempwarid;
+    if((tempwarid = Iter_Free(WarArenas)) == -1) return SendClientMessage(playerid,-1,""RED"Error:"GREY"There is a War arenas are full please wait for sometime.");
     
     new 
         c1,
         tempid,
         p;
     
-    if(isnull(params)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY":/gwar gangname");
+    if(isnull(params)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY" /gwar gangname");
     if(!strcmp(params,"INVALID")) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not allowed to use that name!!");
+    if(!strcmp(params,GInfo[playerid][gangname],true)) return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You can't challenge your own gang!");
     foreach( p: SS_Player)
     {
         if(!strcmp(GInfo[p][gangname],params,true))
@@ -315,22 +317,25 @@ CMD:gwar(playerid,params[])
     }
     
     if(c1 == 0) return SendClientMessage(playerid,-1,""RED"No members of that gang is online");
-    new Random;
+    new RandomSpawn,RandomArena;
+    RandomArena = random(sizeof(RandomSpawnsGW));
     foreach(new i : SS_Player)
     {
         if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname]) || !strcmp(params,GInfo[i][gangname]))
         {
             GInfo[i][inwar] = true;
-            Random = random(sizeof(RandomSpawnsGW));
-            SetPlayerPos(i,RandomSpawnsGW[Random][0], RandomSpawnsGW[Random][1], RandomSpawnsGW[Random][2]);
-            SetPlayerInterior(i,1);
+            GInfo[i][warid] = tempwarid;
+            RandomSpawn = random(sizeof(RandomSpawnsGW[]));
+            SetPlayerPos(i,RandomSpawnsGW[RandomArena][RandomSpawn][0], RandomSpawnsGW[RandomArena][RandomSpawn][1], RandomSpawnsGW[RandomArena][RandomSpawn][2]);
             ResetPlayerWeapons(i);
+            SetPlayerVirtualWorld(i, tempwarid+25);
             TogglePlayerControllable( i, false );
         }
     }
 
-    ActiveWar = true;
-    SetTimerEx("GangWar",10000,false,"ii",playerid,tempid);
+    ActiveWar[tempwarid] = true;
+    Iter_Add(WarArenas, tempwarid);
+    SetTimerEx("GangWar",10000,false,"iii",playerid,tempid,tempwarid);
 
     new str[128];
 

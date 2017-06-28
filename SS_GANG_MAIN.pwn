@@ -72,9 +72,10 @@
 #include <zcmd>   //ZEEX 
 #include <YSI\y_iterate> //Y LESS
 
+//Script options 
 
 #define DEBUG (true)  // for developers only
-
+#define USE_STREAMER  (true)    //defining true uses streamer otherwise the script uses y_areas
 
 /*
 --------------------------------------------------------------------------------------------------
@@ -89,13 +90,14 @@
 
 #define MAX_GANGS                (50)
 #define MAX_GZONES               (50)
+#define MAX_GANG_WARS            (10) //Maximum number of gang wars at a time
 #define ZONE_COLOR               (0xF3F0E596)
 #define ZONE_LOCK_TIME           (10)                //NOTE:The time should be given in seconds
 #define ZONE_CAPTURE_TIME        (5)                //Same as above note
 #define MAX_SCORE                (0)                //Maximum score to create a gang
 #define ZONE_COLOR_OPAQUE_VALUE  (100)		  //Don't un neccessarily put value use your brain!
 #define CHAT_SYMBOL              '#'        //The prefix used for gang chat in game
-#define USE_STREAMER             (false)    //defining true uses streamer otherwise the script uses y_areas
+#define INVALID_WAR_ID           (4808)
 
 #if USE_STREAMER == true
   #include<streamer>
@@ -103,6 +105,7 @@
   #define Area_Delete DestroyDynamicArea
   #define OnPlayerEnterArea OnPlayerEnterDynamicArea
   #define OnPlayerLeaveArea OnPlayerLeaveDynamicArea
+
 #else 
   #include <YSI\y_areas>
 
@@ -129,16 +132,16 @@
 #define BLUE    "{0000FF}"
 #define PINK    "{F7B0D0}"
 
-#define G_PURPLE                0xD526D9FF
-#define G_GREEN                 0x00FF00FF
-#define G_PINK                  0xFFB6C1FF
-#define G_CYAN                  0x33CCFFAA
-#define G_GREY                  0xAFAFAFAA
-#define G_WHITE                 0xFFFFFFFF
-#define G_ORANGE                0xFF8000FF
-#define G_YELLOW                0xFFFF00FF
-#define G_BLUE                  0x0080FFC8
-#define G_RED                   0xFF0000FF
+#define G_PURPLE   0xD526D9FF
+#define G_GREEN    0x00FF00FF
+#define G_PINK     0xFFB6C1FF
+#define G_CYAN     0x33CCFFAA
+#define G_GREY     0xAFAFAFAA
+#define G_WHITE    0xFFFFFFFF
+#define G_ORANGE   0xFF8000FF
+#define G_YELLOW   0xFFFF00FF
+#define G_BLUE     0x0080FFC8
+#define G_RED      0xFF0000FF
 
 
 
@@ -146,7 +149,8 @@
 new 
 	Iterator:SS_Player<MAX_PLAYERS>,
 	Iterator:Zones<MAX_GZONES>;
-    
+
+ 
 #include "SSGANG\Core\Gangs\GangData.pwn"
 #include "SSGANG\Core\Dialogs\DialogHandles.pwn"
 #include "SSGANG\Database\SQLite\DBHandle.pwn"
@@ -170,12 +174,13 @@ new
 
  
 
-/*
+
 public OnFilterScriptInit()
 {
   for(new i; i <= GetPlayerPoolSize();++i)
     if(IsPlayerConnected(i))
       CallRemoteFunction("OnPlayerConnect", "i", i);
+    
   return 1;
 }
 
@@ -185,4 +190,4 @@ public OnFilterScriptExit()
     if(IsPlayerConnected(i))
       CallRemoteFunction("OnPlayerDisconnect", "ii", i,1);
   return 1;
-}*/
+}
