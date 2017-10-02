@@ -55,31 +55,44 @@ CMD:lg(playerid,params[])
         gname [32],
         Query[155],
         str[128];
-    
+    strcpy(gname,GInfo[playerid][gangname]);
     
     if(GInfo[playerid][gangleader] == 1)
     {
-        format(Query,sizeof(Query),"DELETE FROM Gangs WHERE GangName = '%q'",gname);
-        db_query(Database,Query);
-        foreach(new i : SS_Player)
+        GInfo[playerid][gangleader] = 0;
+        new count_leader,DBResult:count_result;
+        format(Query,sizeof(Query),"SELECT COUNT(*) FROM Members WHERE GANGID = %d AND GANGLEADER = 1",GInfo[playerid][gangid]);
+        
+        count_result = db_query(Database, Query);
+        count_leader = db_get_field_assoc_int(count_result,"COUNT(*)");
+        #if DEBUG == true
+            printf("leader count = %d ",count_leader);
+        #endif
+        db_free_result(count_result);
+        if(count_leader<=1)
         {
-            if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
-            {
-                GInfo[i][gangmember] = 0;
-                GInfo[i][gangname][0] = EOS;
-                if(GInfo[i][gangleader] == 1)
-                    GInfo[playerid][gangleader] = 0;
-            }
-        }
-    
-        
-        
-        format(Query,sizeof(Query),"DELETE FROM Members WHERE GangID = %d ",GInfo[playerid][gangid]);
-        db_query(Database,Query);
-        
-        format(str,sizeof(str),""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
-        SetPlayerName(playerid,GInfo[playerid][username]);
-        return SendClientMessageToAll(-1,str);
+		    format(Query,sizeof(Query),"DELETE FROM Gangs WHERE GangName = '%q'",gname);
+		    db_query(Database,Query);
+
+	        foreach(new i : SS_Player)
+	        {
+	            if(!strcmp(GInfo[i][gangname],GInfo[playerid][gangname],false))
+	            {
+	                GInfo[i][gangmember] = 0;
+	                GInfo[i][gangname][0] = EOS;
+	                /*if(GInfo[i][gangleader] == 1)
+	                    GInfo[playerid][gangleader] = 0;*/
+	            }
+	        }
+	    
+	             
+	        format(Query,sizeof(Query),"DELETE FROM Members WHERE GangID = %d ",GInfo[playerid][gangid]);
+	        db_query(Database,Query);
+	        
+	        format(str,sizeof(str),""RED"Leader "YELLOW"%s"RED" Has Left Gang %s%s"RED" and Gang is Destroyed",GInfo[playerid][username],IntToHex(GInfo[playerid][gangcolor]),gname);
+	        SetPlayerName(playerid,GInfo[playerid][username]);
+	        return SendClientMessageToAll(-1,str);
+	    }
     }
 
     GInfo[playerid][gangmember] = 0;
