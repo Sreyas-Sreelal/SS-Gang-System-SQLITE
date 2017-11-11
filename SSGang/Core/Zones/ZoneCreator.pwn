@@ -84,6 +84,8 @@ hook OnPlayerUpdate(playerid)
 
 CMD:createzone(playerid,params[])
 {
+    if(Iter_Count(Zones) == MAX_GZONES)
+      return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"Server reached zone limit!!!");
     if(!IsPlayerAdmin(playerid)) 
       return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to use that Command!!");
     if(GInfo[playerid][creatingzone]) 
