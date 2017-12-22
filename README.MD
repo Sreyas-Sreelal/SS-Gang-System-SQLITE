@@ -1,9 +1,10 @@
 # SS-Gang-System-SQLITE
 
-This a filterscript for SA-MP a mulitplayer modification of GTA San Andreas game by Rockstar.This script is written in pawn language with SQLite query library by SAMP team.
+Dynamic gang system for SA-MP.This filterscript allows user to create custom gang,fight gang wars with other gangs and take over gang zones.The script available in both SQLITE and MySQL versions.This script undergone many tests by various server owners and scripters.If you found any bug or if you have any suggestions or improvements open an issue or make a pull request.
 
-## V 1.0
+## Commands
 
+```
 *   /gcp        - to enter gang control panel
 *   /creategang - to create new gang
 *   /gangtag    - to add tag to your gang
@@ -22,15 +23,51 @@ This a filterscript for SA-MP a mulitplayer modification of GTA San Andreas game
 *   /createzone - to create a gang zone(Rcon only)
 *   /zones      - to show all gang zone and their details
 *   /ghelp      - to view all cmds
+```
+## Latest Bug fixes
+```
+*	Gang War logic has been re written now.Limit of on gangwar per time is removed.
+*	Gang ownership logic has been modified.Now system checks for another leader if the one leader leaves the gang.
+*	Added support for streamer.(See the custom settings)
+*	Changed database schema.(Old db is no longer supported.Delete it before using upgraded one).
+*	Minor bug fixed and optmisations.
+```
+## Custom Settings
 
-## Other Features
+```
+#define MAX_GANGS                (50)
+#define MAX_GZONES               (50)
+#define MAX_GANG_WARS            (10) //Maximum number of gang wars at a time
+#define ZONE_COLOR               (0xF3F0E596)
+#define ZONE_LOCK_TIME           (10) //NOTE:The time should be given in seconds
+#define ZONE_CAPTURE_TIME        (5)  //Same as above note
+#define MAX_SCORE                (0)  //Maximum score to create a gang
+#define ZONE_COLOR_OPAQUE_VALUE  (100)//Don't un neccessarily put value use your brain!
+#define CHAT_SYMBOL              '#'  //The prefix used for gang chat in game
 
-* Use '#' to gang chat
-* Each kill give 1 score for gang
-* Gang Member's death will be notified
-* Gang will be destroyed if a leader leaves it
-* Gang Members will get 100$ per each 10 minutes
-* Gang Zone will locked for certain time given by user
-* Capturing gang zone gives 10 score to the gang
-* In game dynamic gang zone creator
-* On entering the zone zone info will be displayed to player
+```
+## Plugins and Libraries
+```
+*	sscanf by Yless - https://github.com/maddinat0r/sscanf/releases
+*	YSI by Yless - https://github.com/Misiur/YSI-Includes/releases
+*	Streamer(optional) by Incognito - https://github.com/Misiur/YSI-Includes/releases
+```
+
+## Building and Installing
+```
+*	Compile SS_GANG_MAIN.pwn
+*	Copy SS_GANG_MAIN.amx to filterscripts folder
+* 	Add SS_GANG_MAIN  to server.cfg
+```
+
+## Special Thanks
+*	AndySedeyn 	 - Contributing
+*	Konstantinos - Contributing
+*	MonsterGamer - Testing
+*	Oma37		 - Testing
+*	Yaa			 - Testing	
+*	UltraZ		 - Testing
+
+
+
+
