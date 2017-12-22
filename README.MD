@@ -2,6 +2,12 @@
 
 Dynamic gang system for SA-MP.This filterscript allows user to create custom gang,fight gang wars with other gangs and take over gang zones.The script available in both SQLITE and MySQL versions.This script undergone many tests by various server owners and scripters.If you found any bug or if you have any suggestions or improvements open an issue or make a pull request.
 
+!["pic"](https://s24.postimg.org/nbh74vcb5/gta_sa_2016_04_27_11_22_08_998.jpg) !["pic"](https://s24.postimg.org/4x6o0w00h/gta_sa_2016_04_27_11_22_11_851.jpg) !["pic"](https://s24.postimg.org/raeenp0y9/gta_sa_2016_04_27_11_22_15_285.jpg)
+!["pic"](https://s24.postimg.org/ekerocidt/gta_sa_2016_04_27_11_22_30_476.jpg) !["pic"](https://s24.postimg.org/y3jcxph5d/gta_sa_2016_04_27_11_22_34_748.jpg) !["pic"](https://s24.postimg.org/r1lfbidjl/gta_sa_2016_04_27_11_22_44_777.jpg)
+!["pic"](https://s24.postimg.org/hibqi1q1d/gta_sa_2016_04_27_11_23_08_195.jpg) !["pic"](https://s24.postimg.org/l37m19ukx/gta_sa_2016_04_27_11_23_24_947.jpg) !["pic"](https://s24.postimg.org/bjxx7t72p/gta_sa_2016_04_27_11_23_50_649.jpg)
+!["pic"](https://s24.postimg.org/nzun1k0ep/DA6_Iwj_U.jpg) !["pic"](https://s24.postimg.org/6b2w9xonl/5pz9_J6_A.jpg) !["pic"](https://s24.postimg.org/qjq9vnnyp/bi1s_ZLy.jpg)
+!["pic"](https://s24.postimg.org/aa03srdap/WDTZY4_P.jpg) !["pic"](https://s24.postimg.org/xod51t1jl/sbh_Rgd_U.jpg)
+
 ## Commands
 
 ```
@@ -42,16 +48,16 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 #define ZONE_LOCK_TIME           (10) //NOTE:The time should be given in seconds
 #define ZONE_CAPTURE_TIME        (5)  //Same as above note
 #define MAX_SCORE                (0)  //Maximum score to create a gang
-#define ZONE_COLOR_OPAQUE_VALUE  (100)//Don't un neccessarily put value use your brain!
+#define ZONE_COLOR_OPAQUE_VALUE  (100)//Opaque value
 #define CHAT_SYMBOL              '#'  //The prefix used for gang chat in game
 
 ```
 ## Plugins and Libraries
-```
-* sscanf by Yless - https://github.com/maddinat0r/sscanf/releases
-* YSI by Yless - https://github.com/Misiur/YSI-Includes/releases
-* Streamer(optional) by Incognito - https://github.com/Misiur/YSI-Includes/releases
-```
+
+* sscanf by [Yless](http://forum.sa-mp.com/member.php?u=29176) - https://github.com/maddinat0r/sscanf/releases
+* YSI by [Yless](http://forum.sa-mp.com/member.php?u=29176) - https://github.com/Misiur/YSI-Includes/releases
+* Streamer(optional) by [Incognito](http://forum.sa-mp.com/member.php?u=925) - https://github.com/Misiur/YSI-Includes/releases
+
 
 ## Building and Installing
 ```
@@ -61,12 +67,12 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 ```
 
 ## Special Thanks
-* AndySedeyn   - Contributing
-* Konstantinos - Contributing
-* MonsterGamer - Testing
-* Oma37		   - Testing
-* Yaa		   - Testing	
-* UltraZ	   - Testing
+* [AndySedeyn](http://forum.sa-mp.com/member.php?u=225999)   - Contributing
+* [Konstantinos](http://forum.sa-mp.com/member.php?u=149753) - Contributing
+* [MonsterGamer](http://forum.sa-mp.com/member.php?u=229155) - Testing
+* [Oma37](http://forum.sa-mp.com/member.php?u=274689)		 - Testing
+* [Yaa](http://forum.sa-mp.com/member.php?u=279315)		     - Testing	
+* [UltraZ](http://forum.sa-mp.com/member.php?u=284129)	     - Testing
 
 
 
