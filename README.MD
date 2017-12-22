@@ -43,7 +43,6 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 ```
 #define DEBUG (true)  // for debuging 
 #define USE_STREAMER  (true)    //defining true uses streamer otherwise the script uses y_areas
-
 #define MAX_GANGS                (50)
 #define MAX_GZONES               (50)
 #define MAX_GANG_WARS            (10) //Maximum number of gang wars at a time
@@ -53,7 +52,6 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 #define MAX_SCORE                (0)  //Maximum score to create a gang
 #define ZONE_COLOR_OPAQUE_VALUE  (100)//Opaque value
 #define CHAT_SYMBOL              '#'  //The prefix used for gang chat in game
-
 ```
 ## Plugins and Libraries
 
