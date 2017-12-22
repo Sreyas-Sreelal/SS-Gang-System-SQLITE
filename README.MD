@@ -26,11 +26,11 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 ```
 ## Latest Bug fixes
 ```
-*	Gang War logic has been re written now.Limit of on gangwar per time is removed.
-*	Gang ownership logic has been modified.Now system checks for another leader if the one leader leaves the gang.
-*	Added support for streamer.(See the custom settings)
-*	Changed database schema.(Old db is no longer supported.Delete it before using upgraded one).
-*	Minor bug fixed and optmisations.
+* Gang War logic has been re written now.Limit of on gangwar per time is removed.
+* Gang ownership logic has been modified.Now system checks for another leader if the one leader leaves the gang.
+* Added support for streamer.(See the custom settings)
+* Changed database schema.(Old db is no longer supported.Delete it before using upgraded one).
+* Minor bug fixed and optmisations.
 ```
 ## Custom Settings
 
@@ -48,25 +48,25 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 ```
 ## Plugins and Libraries
 ```
-*	sscanf by Yless - https://github.com/maddinat0r/sscanf/releases
-*	YSI by Yless - https://github.com/Misiur/YSI-Includes/releases
-*	Streamer(optional) by Incognito - https://github.com/Misiur/YSI-Includes/releases
+* sscanf by Yless - https://github.com/maddinat0r/sscanf/releases
+* YSI by Yless - https://github.com/Misiur/YSI-Includes/releases
+* Streamer(optional) by Incognito - https://github.com/Misiur/YSI-Includes/releases
 ```
 
 ## Building and Installing
 ```
-*	Compile SS_GANG_MAIN.pwn
-*	Copy SS_GANG_MAIN.amx to filterscripts folder
-* 	Add SS_GANG_MAIN  to server.cfg
+* Compile SS_GANG_MAIN.pwn
+* Copy SS_GANG_MAIN.amx to filterscripts folder
+* Add SS_GANG_MAIN  to server.cfg
 ```
 
 ## Special Thanks
-*	AndySedeyn 	 - Contributing
-*	Konstantinos - Contributing
-*	MonsterGamer - Testing
-*	Oma37		 - Testing
-*	Yaa			 - Testing	
-*	UltraZ		 - Testing
+* AndySedeyn   - Contributing
+* Konstantinos - Contributing
+* MonsterGamer - Testing
+* Oma37		   - Testing
+* Yaa		   - Testing	
+* UltraZ	   - Testing
 
 
 
