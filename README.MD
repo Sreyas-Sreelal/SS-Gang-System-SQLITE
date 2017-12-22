@@ -41,6 +41,9 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 ## Custom Settings
 
 ```
+#define DEBUG (true)  // for debuging 
+#define USE_STREAMER  (true)    //defining true uses streamer otherwise the script uses y_areas
+
 #define MAX_GANGS                (50)
 #define MAX_GZONES               (50)
 #define MAX_GANG_WARS            (10) //Maximum number of gang wars at a time
