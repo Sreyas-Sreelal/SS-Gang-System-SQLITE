@@ -46,6 +46,7 @@
                                       |   /lg         - to leave the gang                              |
                                       |   /capture    - to capture a gangzone                          |
                                       |   /createzone - to create a gang zone(Rcon only)               |
+                                      |   /removezone - to remove a created zone(Rcon only)            |
                                       |   /zones      -  to show all gang zone and their details       |
                                       |   /ghelp      - to view all cmds                               |
                                       |                                                                |
