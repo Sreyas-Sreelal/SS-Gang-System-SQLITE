@@ -11,7 +11,7 @@ ZoneLoad.pwn - Contains DB handling to Zones table
 hook OnFilterScriptInit()
 {
 	db_query(Database,"CREATE TABLE IF NOT EXISTS Zones (\
-                                                          Name VARCHAR(32) COLLATE NOCASE,\
+                                                          Name VARCHAR(32)  UNIQUE COLLATE NOCASE,\
                                                           OwnerID  INT(3) DEFAULT 0,\
                                                           MinX FLOAT,\
                                                           MinY FLOAT,\

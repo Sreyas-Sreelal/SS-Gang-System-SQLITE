@@ -161,6 +161,7 @@ new
 #include "SSGANG\Core\Zones\ZoneData.pwn"
 #include "SSGANG\Core\Zones\Zhandle.pwn"
 #include "SSGANG\Core\Zones\ZCmds.pwn"
+#include "SSGANG\Database\SQLite\Commands\DBZonecmds.pwn"
 #include "SSGANG\Database\SQLite\GangDB.pwn"
 #include "SSGANG\Database\SQLite\ZoneLoad.pwn"
 #include "SSGANG\Core\Gangs\Functions.pwn"
@@ -171,9 +172,6 @@ new
 #include "SSGANG\Database\SQLite\DialogHooks.pwn"
 #include "SSGANG\Core\Players\Others\AreaSync.pwn"
 #include "SSGANG\Database\SQLite\CallBackHooks.pwn"
-
- 
-
 
 public OnFilterScriptInit()
 {
