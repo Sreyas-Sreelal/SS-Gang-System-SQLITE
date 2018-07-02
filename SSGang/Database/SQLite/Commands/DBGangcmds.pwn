@@ -26,7 +26,7 @@ CMD:creategang(playerid,params[])
     if( db_num_rows( result ) )
     {
         db_free_result(result);
-        return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"That name exits");
+        return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"That name exists");
     }
     db_free_result(result);
     GInfo[playerid][gangmember] = 1;
