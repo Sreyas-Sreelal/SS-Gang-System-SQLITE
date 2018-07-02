@@ -61,14 +61,14 @@ CMD:capture(playerid)
 
 CMD:zones(playerid)
 {
-   new string[900];
+   new string[900],count = 1;//work around to fix the numbering bug caused if iter_remove is called
 
    foreach(new i : Zones)
    {
         if(isnull(ZInfo[i][Owner]))
-             format(string,sizeof string,"%s"GREEN"%d.)"RED"%s\n",string,(i+1),ZInfo[i][Name]);
+             format(string,sizeof string,"%s"GREEN"%d.)"RED"%s\n",string,count++,ZInfo[i][Name]);
         else
-            format(string,sizeof string,"%s"GREEN"%d.)"RED"%s"YELLOW" %s(%s)\n",string,(i+1),ZInfo[i][Name],IntToHex(ZInfo[i][Color]),ZInfo[i][Owner]);
+            format(string,sizeof string,"%s"GREEN"%d.)"RED"%s"YELLOW" %s(%s)\n",string,count++,ZInfo[i][Name],IntToHex(ZInfo[i][Color]),ZInfo[i][Owner]);
    }
 
    ShowPlayerDialog(playerid,ZONES,DIALOG_STYLE_MSGBOX,""ORANGE"Zones"PINK"           Owned By",string,"Cancel","");
