@@ -3,9 +3,9 @@ CMD:removezone(playerid,params[])
 {
 	if(!IsPlayerAdmin(playerid)) 
       return SendClientMessage(playerid,-1,""RED"ERROR:"GREY"You are not authorised to use that Command!!");
-  
+
 	if(isnull(params)) return SendClientMessage(playerid,-1,""RED"Error:"GREY" /removezone [ZoneName]");
-	new Query[60],bool:found=false,i;
+	new Query[60],bool:found = false,i;
 
 	foreach(i : Zones)
 		if(!strcmp(ZInfo[i][Name],params))
