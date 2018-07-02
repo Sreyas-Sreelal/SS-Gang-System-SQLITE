@@ -27,16 +27,18 @@ Dynamic gang system for SA-MP.This filterscript allows user to create custom gan
 *   /lg         - to leave the gang
 *   /capture    - to capture a gangzone
 *   /createzone - to create a gang zone(Rcon only)
+*   /removezone - to remove a created zone(Rcon only)
 *   /zones      - to show all gang zone and their details
 *   /ghelp      - to view all cmds
 ```
-## Latest Bug fixes
+## Latest Changes
 ```
 * Gang War logic has been re written now.Limit of on gangwar per time is removed.
 * Gang ownership logic has been modified.Now system checks for another leader if the one leader leaves the gang.
 * Added support for streamer.(See the custom settings)
 * Changed database schema.(Old db is no longer supported.Delete it before using upgraded one).
 * Minor bug fixed and optmisations.
+* Added removezone command
 ```
 ## Custom Settings
 
